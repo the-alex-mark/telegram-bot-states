@@ -11,8 +11,11 @@
             "homepage": "https://the-alex-mark.ru"
         }
     ],
-    "keywords": [ "laravel", "telegram", "bot", "states" ],
+    "keywords": [ "laravel", "telegram", "bot", "states", "cache" ],
     "autoload": {
+        "files": [
+            "helpers/cache.php"
+        ],
         "psr-4": {
             "ProgLib\\Telegram\\": "src/"
         }

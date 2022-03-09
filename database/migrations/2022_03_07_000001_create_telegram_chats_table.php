@@ -2,40 +2,16 @@
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
+use ProgLib\Telegram\Database\Migrations\Migration;
 
-class CreateTelegramTelegramChatsTable extends Migration {
+class CreateTelegramChatsTable extends Migration {
 
     #region Properties
 
     /**
-     * @var string Наименование таблицы
+     * @inheritDoc
      */
-    public $table = 'telegram_chats';
-
-    #endregion
-
-    #region Helpers
-
-    /**
-     * Возвращает строку с именем индекса для указанного столбца.
-     *
-     * @param  string $column Имя столбца.
-     * @return string
-     */
-    public function getIndexByColumnName($column) {
-        return "{$this->table}_{$column}_index";
-    }
-
-    /**
-     * Возвращает строку с именем индекса для указанного столбца.
-     *
-     * @param  string $column Имя столбца.
-     * @return string
-     */
-    public function getUniqueByColumnName($column) {
-        return "{$this->table}_{$column}_unique";
-    }
+    protected $table = 'telegram_chats';
 
     #endregion
 
@@ -52,6 +28,10 @@ class CreateTelegramTelegramChatsTable extends Migration {
             $table->bigInteger('chat_id')->nullable(false)->comment('Идентификатор чата');
             $table->string('chat_type', 255)->nullable(false)->comment('Тип чата');
             $table->longText('chat_data')->nullable()->comment('Пользовательская информация');
+            $table->longText('chat_cache')->nullable()->comment('Буфер');
+
+            // Добавление временных меток
+            $table->timestamps();
         });
 
         // Индексация полей
