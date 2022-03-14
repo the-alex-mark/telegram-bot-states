@@ -62,6 +62,12 @@ php artisan telegram:clear-cache
 
 <br>
 
+## Дополнительные модули
+
+- [Telegram Bot SDK](https://github.com/irazasyed/telegram-bot-sdk)
+
+<br>
+
 ## Дополнительная информация
 
 - [Laravel Docs](https://laravel.com/docs)
