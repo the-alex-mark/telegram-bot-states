@@ -4,6 +4,26 @@
 
 <br>
 
+## Использование
+
+```bash
+composer require the_alex_mark/telegram-bot-states
+```
+
+<br>
+
+Публикация ресурсов:
+```bash
+
+# Миграции
+php artisan vendor:publish --provider="ProgLib\Telegram\Providers\TelegramStatesServiceProvider" --tag="migrations"
+
+# Файлы локализации
+php artisan vendor:publish --provider="ProgLib\Telegram\Providers\TelegramStatesServiceProvider" --tag="translations"
+```
+
+<br>
+
 ## Cache
 
 Кеширование реализовано [на базе «Laravel»](https://laravel.com/docs/9.x/cache) с разделением для каждого пользователя «Telegram», таким образом, чтобы под одним пользователем было невозможно очистить данные другого.
