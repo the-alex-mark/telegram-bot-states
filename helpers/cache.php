@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Cache\Repository;
 use ProgLib\Telegram\Exceptions\TelegramCacheException;
 
 if (!function_exists('telegram_cache')) {
@@ -9,7 +10,7 @@ if (!function_exists('telegram_cache')) {
      *
      * @param array|string|null $key Ключ.
      * @param mixed $default Значение по умолчанию.
-     * @return mixed|Illuminate\Contracts\Cache\Repository
+     * @return mixed|Repository
      * @throws TelegramCacheException
      */
     function telegram_cache($key = null, $default = null) {
@@ -27,7 +28,7 @@ if (!function_exists('telegram_cache')) {
             return app('telegram_cache')->get($key, $default);
         }
         catch (Throwable $e) {
-            throw new TelegramCacheException('Не удалось получить экземпляр для работы с буфером «Telegram».');
+            throw new TelegramCacheException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }
