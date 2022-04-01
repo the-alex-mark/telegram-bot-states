@@ -82,6 +82,19 @@ php artisan telegram:clear-cache
 
 <br>
 
+## Options
+
+Использование вспомогательных методов:
+```php
+// Получение значения настройки
+$value = telegram_option_get('key', 'default');
+
+// Сохранение значения настройки
+$value = telegram_option_add('key', 'value')
+```
+
+<br>
+
 ## Дополнительные модули
 
 - [Telegram Bot SDK](https://github.com/irazasyed/telegram-bot-sdk)
