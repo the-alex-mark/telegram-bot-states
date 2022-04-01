@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id Идентификатор записи
  * @property int $chat_id Идентификатор чата
+ * @property string $chat_username Имя пользователя
  * @property string $chat_type Тип чата
  * @property array $chat_data Пользовательская информация
  * @property array $chat_cache Буфер
+ * @property-read string $chat_url Адрес диалога чата
  */
 class TelegramChat extends Model {
 
@@ -22,9 +24,17 @@ class TelegramChat extends Model {
      */
     protected $fillable = [
         'chat_id',
+        'chat_username',
         'chat_type',
         'chat_data',
         'chat_cache'
+    ];
+
+    /**
+     * @inheritDoc
+     */
+    protected $appends = [
+        'chat_url'
     ];
 
     /**
@@ -46,6 +56,22 @@ class TelegramChat extends Model {
      * @inheritDoc
      */
     public $timestamps = true;
+
+    #endregion
+
+    #region Mutators
+
+    /**
+     * Возвращает адрес диалога чата «Telegram».
+     *
+     * @return null|string
+     */
+    public function getChatUrlAttribute() {
+        if (!empty($this->chat_username))
+            return config('telegram.url.messenger', 'https://t.me') . '/' . $this->chat_username;
+
+        return null;
+    }
 
     #endregion
 

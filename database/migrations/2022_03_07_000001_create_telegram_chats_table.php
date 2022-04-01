@@ -26,6 +26,7 @@ class CreateTelegramChatsTable extends Migration {
         Schema::create($this->table, function (Blueprint $table) {
             $table->bigInteger('id', true, true);
             $table->bigInteger('chat_id')->nullable(false)->comment('Идентификатор чата');
+            $table->string('chat_username', 255)->nullable()->comment('Имя пользователя');
             $table->string('chat_type', 255)->nullable(false)->comment('Тип чата');
             $table->longText('chat_data')->nullable()->comment('Пользовательская информация');
             $table->longText('chat_cache')->nullable()->comment('Буфер');
