@@ -5,8 +5,6 @@ namespace ProgLib\Telegram\Providers;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use ProgLib\Telegram\Cache\DataBaseStore as TelegramDataBaseStore;
-use ProgLib\Telegram\Cache\FileStore as TelegramFileStore;
 use ProgLib\Telegram\Console\ClearCommand as TelegramCacheClearCommand;
 use ProgLib\Telegram\Providers\Helpers\Path;
 
@@ -25,38 +23,18 @@ class TelegramCacheServiceProvider extends ServiceProvider implements Deferrable
     }
 
     /**
-     * Boot service provider.
-     *
-     * @return void
      * @throws BindingResolutionException
      */
     public function boot() {
         if ($this->app->runningInConsole())
             $this->commands([ 'telegram_cache.command.clear' ]);
 
-        // Регистрация конфигурации хранилища буфера в базе данных
-        $this->app->make('config')->set('cache.stores.telegram_database', [
-            'driver' => 'telegram_database'
-        ]);
+        // Получение параметров буфера
+        $driver = $this->app->make('config')->get('telegram.cache.driver', 'database');
+        $params = $this->app->make('config')->get("telegram.cache.stores.$driver", []);
 
-        // Регистрация конфигурации хранилища буфера в файлах
-        $this->app->make('config')->set('cache.stores.telegram_file', [
-            'driver' => 'telegram_file',
-            'path' => storage_path('framework/cache/telegram'),
-        ]);
-
-        // Регистрация хранилища буфера в базе данных
-        $this->app['cache']->extend('telegram_database', function($app) {
-            return $app['cache']->repository(new TelegramDataBaseStore(false));
-        });
-
-        // Регистрация хранилища буфера в файлах
-        $this->app['cache']->extend('telegram_file', function($app) {
-            $path       = $app['config']['cache.stores.telegram_file.path'];
-            $permission = $app['config']['cache.stores.telegram_file.permission'];
-
-            return $app['cache']->repository(new TelegramFileStore($app['files'], $path, $permission ?? null));
-        });
+        // Сохранение в общую конфигурацию
+        $this->app->make('config')->set('cache.stores.telegram', $params);
     }
 
     /**
@@ -69,7 +47,7 @@ class TelegramCacheServiceProvider extends ServiceProvider implements Deferrable
 
         // Регистрация фасада для работы с буфером
         $this->app->singleton('telegram_cache', function ($app) {
-            return $app['cache']->store($app['config']['telegram.cache.driver'] ?? 'telegram_database');
+            return $app['cache']->store($app['config']['telegram.cache.driver'] ?? $app['config']['cache.driver']);
         });
 
         // Регистрация команды очистки буфера

@@ -3,19 +3,19 @@
 namespace ProgLib\Telegram\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use ProgLib\Telegram\Database\Eloquent\Concerns\HasOverrides;
 
 /**
  * Представляет чат.
  *
- * @property int $id Идентификатор записи
- * @property int $chat_id Идентификатор чата
- * @property string $chat_username Имя пользователя
- * @property string $chat_type Тип чата
- * @property array $chat_data Пользовательская информация
- * @property array $chat_cache Буфер
- * @property-read string $chat_url Адрес диалога чата
+ * @property int $id Идентификатор чата
+ * @property string $username Имя пользователя
+ * @property string $type Тип чата
+ * @property-read string $url Адрес диалога чата
  */
 class TelegramChat extends Model {
+
+    use HasOverrides;
 
     #region Properties
 
@@ -23,33 +23,16 @@ class TelegramChat extends Model {
      * @inheritDoc
      */
     protected $fillable = [
-        'chat_id',
-        'chat_username',
-        'chat_type',
-        'chat_data',
-        'chat_cache'
+        'id',
+        'username',
+        'type'
     ];
 
     /**
      * @inheritDoc
      */
     protected $appends = [
-        'chat_url'
-    ];
-
-    /**
-     * @inheritDoc
-     */
-    protected $hidden = [
-        'chat_cache'
-    ];
-
-    /**
-     * @inheritDoc
-     */
-    protected $casts = [
-        'chat_data' => 'array',
-        'chat_cache' => 'array'
+        'url'
     ];
 
     /**
@@ -66,36 +49,11 @@ class TelegramChat extends Model {
      *
      * @return null|string
      */
-    public function getChatUrlAttribute() {
-        if (!empty($this->chat_username))
-            return config('telegram.url.messenger', 'https://t.me') . '/' . $this->chat_username;
+    public function getUrlAttribute() {
+        if (!empty($this->username))
+            return config('telegram.endpoints.messenger') . '/' . $this->username;
 
         return null;
-    }
-
-    #endregion
-
-    #region Overrides
-
-    /**
-     * @inheritDoc
-     */
-    public function fromJson($value, $asObject = false) {
-        $data = json_decode($value, !$asObject);
-
-        if (!$asObject)
-            $data = is_null($data) ? [] : $data;
-
-        return $data;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function asJson($value) {
-        return (empty($value))
-            ? null
-            : json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     #endregion

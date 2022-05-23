@@ -48,4 +48,18 @@ abstract class Migration extends BaseMigration {
     }
 
     #endregion
+
+    /**
+     * Применяет изменения в базе данных.
+     *
+     * @return void
+     */
+    abstract function up();
+
+    /**
+     * Выполняет откат изменений.
+     *
+     * @return void
+     */
+    abstract function down();
 }
