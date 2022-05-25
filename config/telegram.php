@@ -1,10 +1,12 @@
 <?php
 
+use ProgLib\Logging\Tap\CustomizeLineFormatter;
+
 return [
 
     /*
     |--------------------------------------------------------------------------
-    | Webhook Params
+    | Telegram Webhook
     |--------------------------------------------------------------------------
     |
     | Дополнительные параметры настройки веб-перехватчика.
@@ -18,7 +20,7 @@ return [
 
     # Предопределённые параметры сообщения
     'message' => [
-        'parse_mode' => 'MarkdownV2',
+        'parse_mode' => env('TELEGRAM_PARSE_MODE', 'MarkdownV2'),
         'disable_web_page_preview' => true,
     ],
 
@@ -27,7 +29,7 @@ return [
     | Telegram Common
     |--------------------------------------------------------------------------
     |
-    | Общие параметры мессенджера.
+    | Дополнительные параметры мессенджера.
     |
     */
 
@@ -76,6 +78,38 @@ return [
                 'driver' => 'file',
                 'path' => storage_path('framework/cache/telegram'),
                 'permission' => null
+            ]
+        ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Telegram Logging
+    |--------------------------------------------------------------------------
+    |
+    | Параметры журнала.
+    |
+    | Примечание:
+    |    Параметры "name" и "path" настраиваются в сервис-провайдере
+    |    «TelegramStatesServiceProvider».
+    |
+    */
+
+    'logging' => [
+
+        # Драйвер журнала по умолчанию
+        'driver' => env('TELEGRAM_LOG_DRIVER', 'file'),
+
+        # Список реализованных драйверов
+        'channels' => [
+
+            'file' => [
+                'driver'     => 'daily',
+                'tap'        => [ CustomizeLineFormatter::class ],
+                'level'      => 'debug',
+                'permission' => null,
+                'locking'    => true,
+                'days'       => 21
             ]
         ]
     ]

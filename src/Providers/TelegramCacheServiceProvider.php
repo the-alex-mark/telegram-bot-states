@@ -3,12 +3,11 @@
 namespace ProgLib\Telegram\Providers;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
 use ProgLib\Telegram\Console\TelegramClearCommand;
 use ProgLib\Telegram\Providers\Helpers\Path;
 
-class TelegramCacheServiceProvider extends ServiceProvider implements DeferrableProvider {
+class TelegramCacheServiceProvider extends ServiceProvider {
 
     use Path;
 
