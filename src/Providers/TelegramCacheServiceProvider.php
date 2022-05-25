@@ -5,7 +5,7 @@ namespace ProgLib\Telegram\Providers;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use ProgLib\Telegram\Console\ClearCommand as TelegramCacheClearCommand;
+use ProgLib\Telegram\Console\TelegramClearCommand;
 use ProgLib\Telegram\Providers\Helpers\Path;
 
 class TelegramCacheServiceProvider extends ServiceProvider implements DeferrableProvider {
@@ -47,12 +47,12 @@ class TelegramCacheServiceProvider extends ServiceProvider implements Deferrable
 
         // Регистрация фасада для работы с буфером
         $this->app->singleton('telegram_cache', function ($app) {
-            return $app['cache']->store($app['config']['telegram.cache.driver'] ?? $app['config']['cache.driver']);
+            return $app['cache']->store('telegram');
         });
 
         // Регистрация команды очистки буфера
         $this->app->singleton('telegram_cache.command.clear', function ($app) {
-            return new TelegramCacheClearCommand($app['cache'], $app['files']);
+            return new TelegramClearCommand($app['cache'], $app['files']);
         });
     }
 }

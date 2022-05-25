@@ -4,7 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use ProgLib\Telegram\Database\Migrations\Migration;
 
-class CreateCacheTable extends Migration {
+class CreateTelegramCacheTable extends Migration {
 
     #region Properties
 
