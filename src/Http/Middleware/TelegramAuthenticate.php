@@ -22,26 +22,26 @@ class TelegramAuthenticate {
      * @return JsonResponse
      */
     public function handle(Request $request, Closure $next) {
-        $update  = new Update($request->all());
+        $update  = Update::make($request->all());
         $message = $update->getMessage();
 
         // Проверка отправителя на то, является ли он ботом
-        if ($message->has('from') && $message->from->isBot)
+        if ($update->has('message') && $message->from->isBot)
             return response()->json([ 'ok' => false, 'description' => '' ]);
 
-        // Фиксация чата как активного пользователя
+        // Указание чата (пользователя) как авторизованного
         $request->setUserResolver(function ($guard = null) use ($message) {
-            $chat    = $message->chat;
-            $records = TelegramChat::query()->where('chat_id', $chat->id)->get();
+            $chat = $message->chat;
 
-            if ($records->isEmpty()) {
-                return TelegramChat::query()->updateOrCreate(
-                    [ 'chat_id'   => $chat->id ],
-                    [ 'chat_type' => $chat->type ]
-                );
-            }
+            /** @var TelegramChat $user */
+            $user = TelegramChat::query()->firstOrCreate([
+                'id'       => $chat->id
+            ], [
+                'username' => $chat->username,
+                'type'     => $chat->type
+            ]);
 
-            return $records->first();
+            return $user;
         });
 
         return $next($request);
