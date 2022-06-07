@@ -106,7 +106,7 @@ return [
             'file' => [
                 'driver'     => 'daily',
                 'tap'        => [ CustomizeLineFormatter::class ],
-                'level'      => 'debug',
+                'level'      => env('TELEGRAM_LOG_LEVEL', 'debug'),
                 'permission' => null,
                 'locking'    => true,
                 'days'       => 21

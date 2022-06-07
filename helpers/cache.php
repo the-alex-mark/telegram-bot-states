@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Cache\Repository;
-use ProgLib\Telegram\Exceptions\TelegramCacheException;
+use ProgLib\Telegram\Bot\Exceptions\TelegramCacheException;
 
 if (!function_exists('telegram_cache')) {
 
@@ -18,14 +18,14 @@ if (!function_exists('telegram_cache')) {
 
             // Возврат экземпляра «TelegramCache»
             if (is_null($key))
-                return app('telegram_cache');
+                return app('telegram.bot.cache');
 
             // Установка списка значений
             if (is_array($key))
-                return app('telegram_cache')->set($key, null);
+                return app('telegram.bot.cache')->set($key, null);
 
             // Возврат значения указанных настроек
-            return app('telegram_cache')->get($key, $default);
+            return app('telegram.bot.cache')->get($key, $default);
         }
         catch (Throwable $e) {
             throw new TelegramCacheException($e->getMessage(), $e->getCode(), $e);

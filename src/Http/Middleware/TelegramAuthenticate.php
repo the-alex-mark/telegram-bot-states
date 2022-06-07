@@ -1,8 +1,8 @@
 <?php
 
-namespace ProgLib\Telegram\Http\Middleware;
+namespace ProgLib\Telegram\Bot\Http\Middleware;
 
-use ProgLib\Telegram\Models\TelegramChat;
+use ProgLib\Telegram\Bot\Models\TelegramChat;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

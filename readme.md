@@ -33,7 +33,7 @@ php artisan vendor:publish --provider="ProgLib\Telegram\Providers\TelegramStates
 
 Использование фасада:
 ```php
-use ProgLib\Telegram\Facades\TelegramCache;
+use ProgLib\Telegram\Bot\Facades\TelegramCache;
 
 // Сохранение
 $result = TelegramCache::put('key', 'value', config('cache.ttl'));

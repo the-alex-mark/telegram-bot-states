@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgLib\Telegram\Exceptions;
+namespace ProgLib\Telegram\Bot\Exceptions;
 
 use Telegram\Bot\Exceptions\TelegramSDKException;
 

@@ -1,39 +1,47 @@
 <?php
 
-namespace ProgLib\Telegram\Providers;
+namespace ProgLib\Telegram\Bot\Providers;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use ProgLib\Telegram\Console\TelegramClearCommand;
-use ProgLib\Telegram\Providers\Helpers\Path;
+use Illuminate\Support\Str;
+use ProgLib\Telegram\Bot\Console\TelegramClearCommand;
 
-class TelegramCacheServiceProvider extends ServiceProvider {
+class TelegramCacheServiceProvider extends ServiceProvider implements DeferrableProvider {
 
-    use Path;
+    #region Helpers
+
+    /**
+     * Возвращает расположение файлов конфигурации относительно модуля.
+     *
+     * @param  string $value
+     * @return string
+     */
+    private function config_path($value = '') {
+        if (!empty($value) && !Str::startsWith('\\', $value) && !Str::startsWith('/', $value))
+            $value = DIRECTORY_SEPARATOR . $value;
+
+        return implode(DIRECTORY_SEPARATOR, array( __DIR__, '..', '..', 'config' )) . $value;
+    }
+
+    #endregion
 
     /**
      * @inheritDoc
      */
     public function provides() {
         return [
-            'telegram_cache',
-            'telegram_cache.command.clear'
+            'telegram.bot.cache',
+            'telegram.bot.cache.command.clear'
         ];
     }
 
     /**
-     * @throws BindingResolutionException
+     * @inheritDoc
      */
     public function boot() {
         if ($this->app->runningInConsole())
-            $this->commands([ 'telegram_cache.command.clear' ]);
-
-        // Получение параметров буфера
-        $driver = $this->app->make('config')->get('telegram.cache.driver', 'database');
-        $params = $this->app->make('config')->get("telegram.cache.stores.$driver", []);
-
-        // Сохранение в общую конфигурацию
-        $this->app->make('config')->set('cache.stores.telegram', $params);
+            $this->commands([ 'telegram.bot.cache.command.clear' ]);
     }
 
     /**
@@ -41,16 +49,13 @@ class TelegramCacheServiceProvider extends ServiceProvider {
      */
     public function register() {
 
-        // Слияние конфигурации
-        $this->mergeConfigFrom($this->config_path('telegram.php'), 'telegram');
-
         // Регистрация фасада для работы с буфером
-        $this->app->singleton('telegram_cache', function ($app) {
+        $this->app->singleton('telegram.bot.cache', function ($app) {
             return $app['cache']->store('telegram');
         });
 
         // Регистрация команды очистки буфера
-        $this->app->singleton('telegram_cache.command.clear', function ($app) {
+        $this->app->singleton('telegram.bot.cache.command.clear', function ($app) {
             return new TelegramClearCommand($app['cache'], $app['files']);
         });
     }

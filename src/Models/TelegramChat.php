@@ -1,9 +1,8 @@
 <?php
 
-namespace ProgLib\Telegram\Models;
+namespace ProgLib\Telegram\Bot\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use ProgLib\Telegram\Database\Eloquent\Concerns\HasOverrides;
 
 /**
  * Представляет чат.
@@ -15,8 +14,6 @@ use ProgLib\Telegram\Database\Eloquent\Concerns\HasOverrides;
  */
 class TelegramChat extends Model {
 
-    use HasOverrides;
-
     #region Properties
 
     /**
@@ -25,7 +22,8 @@ class TelegramChat extends Model {
     protected $fillable = [
         'id',
         'username',
-        'type'
+        'type',
+        'extra'
     ];
 
     /**
@@ -38,7 +36,19 @@ class TelegramChat extends Model {
     /**
      * @inheritDoc
      */
+    protected $casts = [
+        'extra' => 'array'
+    ];
+
+    /**
+     * @inheritDoc
+     */
     public $timestamps = true;
+
+    /**
+     * @var bool Определяет, требуется ли форматировать JSON
+     */
+    protected $json_pretty_print = true;
 
     #endregion
 
@@ -54,6 +64,36 @@ class TelegramChat extends Model {
             return config('telegram.endpoints.messenger') . '/' . $this->username;
 
         return null;
+    }
+
+    #endregion
+
+    #region Overrides
+
+    /**
+     * @inheritDoc
+     */
+    public function fromJson($value, $asObject = false) {
+        $data = json_decode($value, !$asObject);
+
+        if (!$asObject)
+            $data = is_null($data) ? [] : $data;
+
+        return $data;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function asJson($value) {
+        $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+
+        if (isset($this->json_pretty_print) && $this->json_pretty_print === true)
+            $options |= JSON_PRETTY_PRINT;
+
+        return (empty($value))
+            ? null
+            : json_encode($value, $options);
     }
 
     #endregion

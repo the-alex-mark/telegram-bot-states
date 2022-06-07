@@ -6,7 +6,7 @@ use Closure;
 use Exception;
 use Illuminate\Routing\Middleware\ThrottleRequests as BaseThrottleRequests;
 use Illuminate\Support\Carbon;
-use ProgLib\Telegram\Facades\TelegramCache;
+use ProgLib\Telegram\Bot\Facades\TelegramCache;
 use RuntimeException;
 use Telegram\Bot\Answers\Answerable;
 use Telegram\Bot\Laravel\Facades\Telegram;

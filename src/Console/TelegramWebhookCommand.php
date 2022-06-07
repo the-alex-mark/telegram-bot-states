@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgLib\Telegram\Console;
+namespace ProgLib\Telegram\Bot\Console;
 
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;

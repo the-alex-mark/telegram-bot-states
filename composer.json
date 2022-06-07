@@ -17,7 +17,7 @@
             "helpers/cache.php"
         ],
         "psr-4": {
-            "ProgLib\\Telegram\\": "src/"
+            "ProgLib\\Telegram\\Bot\\": "src/"
         }
     },
     "require-dev": {
@@ -33,11 +33,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ProgLib\\Telegram\\Providers\\TelegramStatesServiceProvider",
-                "ProgLib\\Telegram\\Providers\\TelegramCacheServiceProvider"
+                "ProgLib\\Telegram\\Bot\\Providers\\TelegramStatesServiceProvider",
+                "ProgLib\\Telegram\\Bot\\Providers\\TelegramCacheServiceProvider"
             ],
             "aliases": {
-                "TelegramCache": "ProgLib\\Telegram\\Laravel\\Facades\\TelegramCache"
+                "TelegramCache": "ProgLib\\Telegram\\Bot\\Facades\\TelegramCache"
             }
         }
     }

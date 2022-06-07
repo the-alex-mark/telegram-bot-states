@@ -1,10 +1,10 @@
 <?php
 
-namespace ProgLib\Telegram\Console;
+namespace ProgLib\Telegram\Bot\Console;
 
 use Exception;
 use Illuminate\Cache\Console\ClearCommand as BaseClearCommand;
-use ProgLib\Telegram\Exceptions\TelegramCacheException;
+use ProgLib\Telegram\Bot\Exceptions\TelegramCacheException;
 use RuntimeException;
 
 class TelegramClearCommand extends BaseClearCommand {

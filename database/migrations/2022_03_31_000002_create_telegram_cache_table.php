@@ -1,22 +1,24 @@
 <?php
 
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use ProgLib\Telegram\Database\Migrations\Migration;
 
 class CreateTelegramCacheTable extends Migration {
 
     #region Properties
 
     /**
-     * @inheritDoc
+     * @var string Наименование таблицы
      */
     protected $table = 'telegram_cache';
 
     #endregion
 
     /**
-     * @inheritDoc
+     * Применяет изменения в базе данных.
+     *
+     * @return void
      */
     public function up() {
 
@@ -36,7 +38,9 @@ class CreateTelegramCacheTable extends Migration {
     }
 
     /**
-     * @inheritDoc
+     * Выполняет откат изменений.
+     *
+     * @return void
      */
     public function down() {
 
