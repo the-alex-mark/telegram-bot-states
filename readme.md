@@ -16,10 +16,10 @@ composer require the_alex_mark/telegram-bot-states
 ```bash
 
 # Миграции
-php artisan vendor:publish --provider="ProgLib\Telegram\Providers\TelegramStatesServiceProvider" --tag="migrations"
+php artisan vendor:publish --provider="ProgLib\Telegram\Bot\Providers\TelegramStatesServiceProvider" --tag="telegram.bot.migrations"
 
 # Файлы локализации
-php artisan vendor:publish --provider="ProgLib\Telegram\Providers\TelegramStatesServiceProvider" --tag="translations"
+php artisan vendor:publish --provider="ProgLib\Telegram\Bot\Providers\TelegramStatesServiceProvider" --tag="telegram.bot.translations"
 ```
 
 <br>
