@@ -2,13 +2,19 @@
 
 namespace ProgLib\Telegram\Bot\Providers;
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use ProgLib\Telegram\Bot\Api\GuzzleHttpClient;
 use ProgLib\Telegram\Bot\Console\TelegramWebhookCommand;
 use ProgLib\Telegram\Bot\Exceptions\Handlers\TelegramBotHandler;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramAuthenticate;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramLogging;
+use ProgLib\Telegram\Http\Middleware\TelegramThrottleRequests;
+use ReflectionException;
 
 class TelegramStatesServiceProvider extends ServiceProvider {
 
@@ -87,6 +93,8 @@ class TelegramStatesServiceProvider extends ServiceProvider {
      * @throws BindingResolutionException
      */
     private function setConfigurationCache() {
+
+        /** @var Repository $config_instance */
         $config_instance = $this->app->make('config');
 
         // Получение параметров буфера
@@ -104,6 +112,8 @@ class TelegramStatesServiceProvider extends ServiceProvider {
      * @throws BindingResolutionException
      */
     private function setConfigurationLogging() {
+
+        /** @var Repository $config_instance */
         $config_instance = $this->app->make('config');
 
         // Получение параметров журнала
@@ -126,11 +136,30 @@ class TelegramStatesServiceProvider extends ServiceProvider {
      * @throws BindingResolutionException
      */
     private function setConfigurationBot() {
+
+        /** @var Repository $config_instance */
         $config_instance = $this->app->make('config');
 
         // Переопределение клиента HTTP по умолчанию
         if (empty($config_instance->get('telegram.http_client_handler')))
             $config_instance->set('telegram.http_client_handler', new GuzzleHttpClient());
+    }
+
+    /**
+     * Устанавливает параметры маршрутизации бота.
+     *
+     * @return void
+     * @throws BindingResolutionException
+     */
+    private function setRoutesBot() {
+
+        /** @var Router $router_instance */
+        $router_instance = $this->app->make('router');
+
+        // Регистрация посредников
+        $router_instance->aliasMiddleware('telegram.bot.auth', TelegramAuthenticate::class);
+        $router_instance->aliasMiddleware('telegram.bot.throttle', TelegramThrottleRequests::class);
+        $router_instance->aliasMiddleware('telegram.bot.logging', TelegramLogging::class);
     }
 
     /**
@@ -159,6 +188,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
         $this->setConfigurationCache();
         $this->setConfigurationLogging();
         $this->setConfigurationBot();
+        $this->setRoutesBot();
     }
 
     /**

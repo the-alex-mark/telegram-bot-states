@@ -11,7 +11,7 @@ use Telegram\Bot\Objects\Update;
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramLog {
+class TelegramLogging {
 
     #region Properties
 
@@ -34,11 +34,9 @@ class TelegramLog {
         if (config('telegram.options.debug', false)) {
             $update = Update::make($request->all());
 
-            // Логирование параметров обновления
-            if (method_exists(app('log'), 'channel')) {
-                Log::channel($this->channel)->debug($update->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-                Log::channel($this->channel)->debug(str_repeat('-', 100));
-            }
+            // Отчёт о параметрах входящего обновления
+            Log::channel($this->channel)->debug($update->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+            Log::channel($this->channel)->debug(str_repeat('-', 100));
         }
 
         return $next($request);

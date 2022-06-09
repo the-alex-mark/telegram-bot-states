@@ -22,7 +22,7 @@ class TelegramBotHandler extends BaseHandler {
     /**
      * @var string Префикс каналов журнала.
      */
-    protected $prefix = 'telegram_';
+    protected $channel = 'telegram_errors';
 
     #endregion
 
@@ -82,8 +82,8 @@ class TelegramBotHandler extends BaseHandler {
 
         // Обработка исключений в работе «Telegram SDK»
         $this->reportable(function (TelegramSDKException $e) {
-            Log::channel($this->prefix . 'errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
-            Log::channel($this->prefix . 'errors')->error(str_repeat('-', 100));
+            Log::channel($this->channel)->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
+            Log::channel($this->channel)->error(str_repeat('-', 100));
         })->stop();
     }
 }
