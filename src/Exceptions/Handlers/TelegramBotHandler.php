@@ -48,20 +48,6 @@ class TelegramBotHandler extends BaseHandler {
     #region Helpers
 
     /**
-     * Преобразует указанное исключение в строку Json.
-     *
-     * @param  Throwable $e       Исключение.
-     * @param  int       $options Параметры Json.
-     * @return string
-     */
-    protected function convertExceptionToJson(Throwable $e, $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) {
-        $error = $this->convertExceptionToArray($e);
-        $error = json_encode($error, $options);
-
-        return $error;
-    }
-
-    /**
      * Преобразует исключение в работе бота «Telegram» в ответ Json.
      *
      * @param  Request   $request Параметры запроса.
@@ -69,10 +55,16 @@ class TelegramBotHandler extends BaseHandler {
      * @return JsonResponse
      */
     protected function telegramJson(Request $request, Throwable $e) {
-        return response()->json([
+        $response = [
             'ok'          => false,
             'description' => $this->isHttpException($e) ? $e->getMessage() : 'Server Error'
-        ]);
+        ];
+
+        // Конкретизация ошибки при активном режиме отладки
+        if (config('app.debug'))
+            $response['exception'] = $this->convertExceptionToArray($e);
+
+        return response()->json($response);
     }
 
     #endregion
@@ -90,7 +82,8 @@ class TelegramBotHandler extends BaseHandler {
 
         // Обработка исключений в работе «Telegram SDK»
         $this->reportable(function (TelegramSDKException $e) {
-            Log::channel($this->prefix . 'error')->error($this->convertExceptionToJson($e));
+            Log::channel($this->prefix . 'errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
+            Log::channel($this->prefix . 'errors')->error(str_repeat('-', 100));
         })->stop();
     }
 }

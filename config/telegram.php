@@ -1,8 +1,20 @@
 <?php
 
 use ProgLib\Logging\Tap\CustomizeLineFormatter;
+use ProgLib\Telegram\Bot\Api\GuzzleHttpClient;
 
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Telegram HTTP Client Handler
+    |--------------------------------------------------------------------------
+    |
+    | Клиент HTTP.
+    |
+    */
+
+    'http_client_handler' => new GuzzleHttpClient(),
 
     /*
     |--------------------------------------------------------------------------

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use ProgLib\Telegram\Bot\Api\GuzzleHttpClient;
 use ProgLib\Telegram\Bot\Console\TelegramWebhookCommand;
 use ProgLib\Telegram\Bot\Exceptions\Handlers\TelegramBotHandler;
 
@@ -119,6 +120,20 @@ class TelegramStatesServiceProvider extends ServiceProvider {
     }
 
     /**
+     * Устанавливает параметры конфигурации бота.
+     *
+     * @return void
+     * @throws BindingResolutionException
+     */
+    private function setConfigurationBot() {
+        $config_instance = $this->app->make('config');
+
+        // Переопределение клиента HTTP по умолчанию
+        if (empty($config_instance->get('telegram.http_client_handler')))
+            $config_instance->set('telegram.http_client_handler', new GuzzleHttpClient());
+    }
+
+    /**
      * @inheritDoc
      * @throws BindingResolutionException
      */
@@ -143,6 +158,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
         // Установка параметров конфигурации
         $this->setConfigurationCache();
         $this->setConfigurationLogging();
+        $this->setConfigurationBot();
     }
 
     /**
