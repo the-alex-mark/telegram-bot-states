@@ -9,11 +9,14 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use ProgLib\Telegram\Bot\Api\GuzzleHttpClient;
+use ProgLib\Telegram\Bot\Console\TelegramMakeCommand;
 use ProgLib\Telegram\Bot\Console\TelegramWebhookCommand;
 use ProgLib\Telegram\Bot\Exceptions\Handlers\TelegramBotHandler;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramAuthenticate;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramLogging;
-use ProgLib\Telegram\Http\Middleware\TelegramThrottleRequests;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramThrottleRequests;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramValidation;
+use ProgLib\Telegram\Bot\Routing\TelegramBotRouteMethods;
 use ReflectionException;
 
 class TelegramStatesServiceProvider extends ServiceProvider {
@@ -74,17 +77,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
 
     #endregion
 
-    /**
-     * @inheritDoc
-     */
-    public function provides() {
-        return [
-            'telegram.bot.migrations',
-            'telegram.bot.translations',
-            'telegram.bot.states',
-            'telegram.bot.states.command.webhook'
-        ];
-    }
+    #region Booting
 
     /**
      * Устанавливает параметров конфигурации буфера.
@@ -124,7 +117,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
         foreach ($this->channels as $channel) {
             $config_instance->set("logging.channels.telegram_$channel", array_replace_recursive($params, [
                 'name' => 'telegram',
-                'path' => storage_path(implode(DIRECTORY_SEPARATOR, [ 'logs', 'telegram', $channel, "telegram-$channel.log" ])),
+                'path' => storage_path(implode(DIRECTORY_SEPARATOR, [ 'logs', 'telegram', $channel, "telegram.log" ])),
             ]));
         }
     }
@@ -150,25 +143,51 @@ class TelegramStatesServiceProvider extends ServiceProvider {
      *
      * @return void
      * @throws BindingResolutionException
+     * @throws ReflectionException
      */
     private function setRoutesBot() {
 
         /** @var Router $router_instance */
         $router_instance = $this->app->make('router');
 
-        // Регистрация посредников
-        $router_instance->aliasMiddleware('telegram.bot.auth', TelegramAuthenticate::class);
-        $router_instance->aliasMiddleware('telegram.bot.throttle', TelegramThrottleRequests::class);
-        $router_instance->aliasMiddleware('telegram.bot.logging', TelegramLogging::class);
+        // Регистрация промежуточного ПО
+        $router_instance
+            ->aliasMiddleware('telegram.bot.validate', TelegramValidation::class)
+            ->aliasMiddleware('telegram.bot.auth', TelegramAuthenticate::class)
+            ->aliasMiddleware('telegram.bot.throttle', TelegramThrottleRequests::class)
+            ->aliasMiddleware('telegram.bot.logging', TelegramLogging::class);
+
+        // Регистрация маршрутов для работы веб-перехватчика
+        $router_instance
+            ->mixin(new TelegramBotRouteMethods());
+    }
+
+    #endregion
+
+    /**
+     * @inheritDoc
+     */
+    public function provides() {
+        return [
+            'telegram.bot.migrations',
+            'telegram.bot.translations',
+            'telegram.bot.states',
+            'telegram.bot.states.command.make',
+            'telegram.bot.states.command.webhook'
+        ];
     }
 
     /**
      * @inheritDoc
      * @throws BindingResolutionException
+     * @throws ReflectionException
      */
     public function boot() {
         if ($this->app->runningInConsole()) {
-            $this->commands([ 'telegram.bot.states.command.webhook' ]);
+            $this->commands([
+                'telegram.bot.states.command.make',
+                'telegram.bot.states.command.webhook'
+            ]);
 
             // Публикация миграций
             $this->publishes([
@@ -206,6 +225,14 @@ class TelegramStatesServiceProvider extends ServiceProvider {
         $this->app->singleton('telegram.bot.states.command.webhook', function ($app) {
             return new TelegramWebhookCommand($app['telegram']);
         });
+
+        // Регистрация команды настройки веб-перехватчика
+        $this->app->singleton('telegram.bot.states.command.make', function ($app) {
+            return new TelegramMakeCommand();
+        });
+
+        // Регистрация сервис-провайдера для работы маршрутизации
+        $this->app->register(TelegramRouteServiceProvider::class);
 
         // Регистрация сервис-провайдера для работы буфера
         $this->app->registerDeferredProvider(TelegramCacheServiceProvider::class);

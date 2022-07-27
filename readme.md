@@ -24,10 +24,58 @@ php artisan vendor:publish --provider="ProgLib\Telegram\Bot\Providers\TelegramSt
 
 <br>
 
+Установка:
+```bash
+php artisan migrate
+php artisan telegram:make
+php artisan config:cache
+php artisan route:cache
+php artisan telegram:webhook bot --setup
+php artisan telegram:webhook bot --set-commands
+```
+
+<br>
+
+Поддерживаемые параметр конфигурации:
+```dotenv
+# Параметры отправки сообщения
+TELEGRAM_BOT_PARSE_MODE="MarkdownV2"
+TELEGRAM_BOT_DISABLE_PREVIEW=true
+
+# Отладка запросов к API
+TELEGRAM_BOT_DEBUG=false
+
+# Ограничение по количеству запросов на веб-перехватчик
+TELEGRAM_BOT_THROTTLE=false
+TELEGRAM_BOT_THROTTLE_ATTEMPTS=50
+TELEGRAM_BOT_THROTTLE_DURING=1
+
+# Ссылки на ресурсы мессенджера
+TELEGRAM_URL_SITE="https://telegram.org"
+TELEGRAM_URL_MESSENGER="https://t.me"
+TELEGRAM_URL_API="https://api.telegram.org"
+```
+
+<br>
+
+## Middlewares
+
+...
+
+<br>
+
 ## Cache
 
 Для работы буфера реализовано два новых драйвера: `database` (используется по умолчанию) и `file`.
 При необходимости можно добавить пользовательский стандартными средствами фреймворка.
+
+<br>
+
+Конфигурация:
+```dotenv
+# Драйвер буфера. По умолчанию "database".
+TELEGRAM_CACHE_DRIVER="database"
+```
 
 <br>
 
@@ -71,6 +119,21 @@ $result = telegram_cache()->forget('key');
 php artisan telegram:clear-cache
 ```
 При необходимости команду можно указать для выполнения в планировщике заданий.
+
+<br>
+
+## Logging
+
+<br>
+
+Конфигурация:
+```dotenv
+# Драйвер журанала. По умолчанию "file".
+TELEGRAM_LOG_DRIVER="file"
+
+# Уровень журанала. По умолчанию "debug".
+TELEGRAM_LOG_LEVEL="debug"
+```
 
 <br>
 

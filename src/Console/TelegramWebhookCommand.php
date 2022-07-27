@@ -2,6 +2,7 @@
 
 namespace ProgLib\Telegram\Bot\Console;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Exception\RuntimeException;
@@ -87,8 +88,10 @@ class TelegramWebhookCommand extends BaseWebhookCommand {
      * @inheritDoc
      */
     protected function setupWebhook() {
-        $route = route('bot.telegram.webhook', [ 'token' => data_get($this->config, 'token') ]);
-        $url   = data_get($this->config, 'webhook', $route);
+        $route = (Route::has('telegram.bot.webhook'))
+            ? route('bot.telegram.webhook', [ 'token' => data_get($this->config, 'token') ])
+            : '';
+        $url   = data_get($this->config, 'webhook_url', $route);
 
         if (!URL::isValidUrl($url))
             throw new RuntimeException('Адрес веб-перехватчика задан некорректно.');
@@ -98,10 +101,10 @@ class TelegramWebhookCommand extends BaseWebhookCommand {
 
         // Параметры работы веб-перехватчика
         $additionally = config('telegram.webhook', []);
-        $params       = array_merge($additionally, [
+        $params       = array_replace([
             'url' => $url,
             'allowed_updates' => json_encode([])
-        ]);
+        ], $additionally);
 
         // Указание сертификата для безопасных запросов
         $certificate = data_get($this->config, 'certificate', false);

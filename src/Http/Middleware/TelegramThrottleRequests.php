@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgLib\Telegram\Http\Middleware;
+namespace ProgLib\Telegram\Bot\Http\Middleware;
 
 use Closure;
 use Exception;
@@ -76,6 +76,9 @@ class TelegramThrottleRequests extends BaseThrottleRequests {
      * @inheritDoc
      */
     public function handle($request, Closure $next, $maxAttempts = 50, $decayMinutes = 1, $prefix = 'telegram') {
+        if (config('telegram.options.throttle.enabled', false) !== true)
+            return $next($request);
+
         $this->telegram = Telegram::bot();
         $this->update   = Update::make($request->all());
 
@@ -84,6 +87,8 @@ class TelegramThrottleRequests extends BaseThrottleRequests {
             return response()->json([ 'ok' => false, 'description' => $e->getMessage() ]);
         }
 
+        $maxAttempts = config('telegram.options.throttle.attempts', $maxAttempts);
+        $decayMinutes = config('telegram.options.throttle.during', $decayMinutes);
         $responseCallback = function ($request, $headers) use ($key, $decayMinutes) {
             TelegramCache::remember($key, 10, function () use ($key, $decayMinutes) {
                 $retryAfter = $this->getTimeUntilNextRetry($key);
