@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'http_client_handler' => new GuzzleHttpClient(),
+    'http_client_handler' => GuzzleHttpClient::class,
 
     /*
     |--------------------------------------------------------------------------

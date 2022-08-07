@@ -17,7 +17,9 @@ use ProgLib\Telegram\Bot\Http\Middleware\TelegramLogging;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramThrottleRequests;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramValidation;
 use ProgLib\Telegram\Bot\Routing\TelegramBotRouteMethods;
+use ProgLib\Telegram\Bot\Sdk\BotsManager as CustomBotsManager;
 use ReflectionException;
+use Telegram\Bot\BotsManager;
 
 class TelegramStatesServiceProvider extends ServiceProvider {
 
@@ -135,7 +137,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
 
         // Переопределение клиента HTTP по умолчанию
         if (empty($config_instance->get('telegram.http_client_handler')))
-            $config_instance->set('telegram.http_client_handler', new GuzzleHttpClient());
+            $config_instance->set('telegram.http_client_handler', GuzzleHttpClient::class);
     }
 
     /**
@@ -179,6 +181,7 @@ class TelegramStatesServiceProvider extends ServiceProvider {
 
     /**
      * @inheritDoc
+     *
      * @throws BindingResolutionException
      * @throws ReflectionException
      */
@@ -217,6 +220,11 @@ class TelegramStatesServiceProvider extends ServiceProvider {
 
         // Слияние конфигурации
         $this->mergeConfigFrom($this->config_path('telegram.php'), 'telegram');
+
+        // Переопределение сервиса управления ботами
+        $this->app->extend(BotsManager::class, static function (BotsManager $manager, $app) {
+            return (new CustomBotsManager($app['config']['telegram']))->setContainer($app);
+        });
 
         // Регистрация пользовательского обработчика исключений
         $this->app->singleton(ExceptionHandler::class, TelegramBotHandler::class);
