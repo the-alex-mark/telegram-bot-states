@@ -13,6 +13,28 @@ use Telegram\Bot\Objects\Update;
  */
 class TelegramAuthenticate {
 
+    #region Helpers
+
+    /**
+     * @param  Update $update Входящее обновление.
+     * @return TelegramChat
+     */
+    protected function resolveRequestUser(Update $update) {
+        $chat = $update->getMessage()->chat;
+
+        /** @var TelegramChat $user */
+        $user = TelegramChat::query()->firstOrCreate([
+            'id'       => $chat->id
+        ], [
+            'username' => $chat->username,
+            'type'     => $chat->type
+        ]);
+
+        return $user;
+    }
+
+    #endregion
+
     /**
      * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
      * Выполняет авторизацию пользователя мессенджера.
@@ -30,18 +52,8 @@ class TelegramAuthenticate {
             return response()->json([ 'ok' => false, 'description' => '' ]);
 
         // Указание чата (пользователя) как авторизованного
-        $request->setUserResolver(function ($guard = null) use ($message) {
-            $chat = $message->chat;
-
-            /** @var TelegramChat $user */
-            $user = TelegramChat::query()->firstOrCreate([
-                'id'       => $chat->id
-            ], [
-                'username' => $chat->username,
-                'type'     => $chat->type
-            ]);
-
-            return $user;
+        $request->setUserResolver(function ($guard = null) use ($update) {
+            return $this->resolveRequestUser($update);
         });
 
         return $next($request);
