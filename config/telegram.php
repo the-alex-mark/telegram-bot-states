@@ -1,6 +1,5 @@
 <?php
 
-use ProgLib\Logging\Tap\CustomizeLineFormatter;
 use ProgLib\Telegram\Bot\Api\GuzzleHttpClient;
 
 return [
@@ -71,38 +70,28 @@ return [
     | Telegram Cache
     |--------------------------------------------------------------------------
     |
-    | Настройки буфера.
-    | Драйвер по умолчанию будет доступен в конфигурации буфера (cache.php) с
-    | ключом "telegram".
+    | Параметры буфера.
     |
     */
 
     'cache' => [
 
         # Драйвер буфера по умолчанию
-        'driver' => env('TELEGRAM_CACHE_DRIVER', 'database'),
+        'default' => env('TELEGRAM_CACHE_STORAGE', 'file'),
 
-        # Список реализованных драйверов
+        # Префикс имени драйвера (необходим для уникальности среди общего списка)
+        'prefix' => env('TELEGRAM_CACHE_PREFIX', 'tb_'),
+
+        # Список доступных драйверов
         'stores' => [
 
-            'database' => [
-                'driver' => 'database',
-                'connection' => null,
-                'table' => 'telegram_cache',
-                'prefix' => '',
+            'database' => tb_cache_driver('database'),
 
-                # Параметры блокировки
-                'lock_connection' => null,
-                'lock_table' => 'telegram_cache_locks',
-                'lock_lottery' => [ 2, 100 ]
-            ],
+            'file' => tb_cache_driver('file')
+        ],
 
-            'file' => [
-                'driver' => 'file',
-                'path' => storage_path('framework/cache/telegram'),
-                'permission' => null
-            ]
-        ]
+        # Продолжительность хранения данных в буфере (в секундах)
+        'ttl' => env('TELEGRAM_CACHE_TTL', 60)
     ],
 
     /*
@@ -112,27 +101,59 @@ return [
     |
     | Параметры журнала.
     |
-    | Примечание:
-    |    Параметры "name" и "path" настраиваются в сервис-провайдере
-    |    «TelegramStatesServiceProvider».
-    |
     */
 
     'logging' => [
 
-        # Драйвер журнала по умолчанию
-        'driver' => env('TELEGRAM_LOG_DRIVER', 'file'),
+        # Канал по умолчанию
+        'default' => env('TELEGRAM_LOG_CHANNEL', 'actions'),
 
-        # Список реализованных драйверов
+        # Префикс имени канала (необходим для уникальности среди общего списка)
+        'prefix' => env('TELEGRAM_LOG_PREFIX', 'tb_'),
+
+        # Список доступных каналов
         'channels' => [
 
-            'file' => [
-                'driver'     => 'daily',
-                'tap'        => [ CustomizeLineFormatter::class ],
-                'level'      => env('TELEGRAM_LOG_LEVEL', 'debug'),
-                'permission' => null,
-                'locking'    => true,
-                'days'       => 21
+            # Технический канал
+            # Примечание: Содержит отчёты о запросах к API сервиса «Telegram»
+            'api' => tb_log_driver('file', [
+                'path' => storage_path('logs/telegram_bot/api/telegram.log')
+            ]),
+
+            # Технический канал
+            # Примечание: Содержит отчёты об отладочной информации
+            'debug' => tb_log_driver('file', [
+                'path' => storage_path('logs/telegram_bot/debug/telegram.log')
+            ]),
+
+            # Технический канал
+            # Примечание: Содержит отчёты об обновлениях в чат-боте
+            'updates' => tb_log_driver('file', [
+                'path' => storage_path('logs/telegram_bot/updates/telegram.log')
+            ]),
+
+            # Технический канал
+            # Примечание: Содержит отчёты об ошибках, произошедших во время работы «Telegram Bot States»
+            'errors' => tb_log_driver('file', [
+                'path' => storage_path('logs/telegram_bot/errors/telegram.log')
+            ]),
+
+            # Пользовательский канал
+            'actions_file' => tb_log_driver('file', [
+                'path' => storage_path('logs/telegram_bot/actions/telegram.log')
+            ]),
+
+            # Пользовательский канал
+            'actions_telegram' => tb_log_driver('telegram'),
+
+            # Пользовательский канал
+            'actions' => [
+                'name' => 'telegram',
+                'driver' => 'stack',
+                'channels' => [
+                    env('TELEGRAM_LOG_PREFIX', 'tb_') . 'actions_file',
+                    env('TELEGRAM_LOG_PREFIX', 'tb_') . 'actions_telegram'
+                ]
             ]
         ]
     ]

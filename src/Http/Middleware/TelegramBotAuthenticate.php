@@ -11,7 +11,7 @@ use Telegram\Bot\Objects\Update;
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramAuthenticate {
+class TelegramBotAuthenticate {
 
     #region Helpers
 

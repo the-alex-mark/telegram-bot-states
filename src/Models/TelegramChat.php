@@ -45,11 +45,6 @@ class TelegramChat extends Model {
      */
     public $timestamps = true;
 
-    /**
-     * @var bool Определяет, требуется ли форматировать JSON
-     */
-    protected $json_pretty_print = true;
-
     #endregion
 
     #region Mutators
@@ -86,14 +81,10 @@ class TelegramChat extends Model {
      * @inheritDoc
      */
     protected function asJson($value) {
-        $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        if (!empty($value))
+            return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
-        if (isset($this->json_pretty_print) && $this->json_pretty_print === true)
-            $options |= JSON_PRETTY_PRINT;
-
-        return (empty($value))
-            ? null
-            : json_encode($value, $options);
+        return null;
     }
 
     #endregion

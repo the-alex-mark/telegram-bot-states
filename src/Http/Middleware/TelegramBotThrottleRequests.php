@@ -6,7 +6,7 @@ use Closure;
 use Exception;
 use Illuminate\Routing\Middleware\ThrottleRequests as BaseThrottleRequests;
 use Illuminate\Support\Carbon;
-use ProgLib\Telegram\Bot\Facades\TelegramCache;
+use ProgLib\Telegram\Bot\Facades\Cache;
 use RuntimeException;
 use Telegram\Bot\Answers\Answerable;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -15,7 +15,7 @@ use Telegram\Bot\Objects\Update;
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramThrottleRequests extends BaseThrottleRequests {
+class TelegramBotThrottleRequests extends BaseThrottleRequests {
 
     use Answerable;
 
@@ -90,7 +90,7 @@ class TelegramThrottleRequests extends BaseThrottleRequests {
         $maxAttempts = config('telegram.options.throttle.attempts', $maxAttempts);
         $decayMinutes = config('telegram.options.throttle.during', $decayMinutes);
         $responseCallback = function ($request, $headers) use ($key, $decayMinutes) {
-            TelegramCache::remember($key, 10, function () use ($key, $decayMinutes) {
+            Cache::remember($key, 10, function () use ($key, $decayMinutes) {
                 $retryAfter = $this->getTimeUntilNextRetry($key);
                 $message = trans('telegram.messages.too_many_attempts', [
                     'decay' => $this->formattedRetryAfter($decayMinutes * 60),

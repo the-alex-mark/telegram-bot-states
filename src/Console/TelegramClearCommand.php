@@ -56,11 +56,11 @@ class TelegramClearCommand extends BaseClearCommand {
     protected function cache() {
         try {
             return empty($this->tags())
-                ? telegram_cache()
-                : telegram_cache()->tags($this->tags());
+                ? tb_cache()
+                : tb_cache()->tags($this->tags());
         }
         catch (Exception $e) {
-            return telegram_cache();
+            return tb_cache();
         }
     }
 }

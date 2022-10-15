@@ -27,7 +27,6 @@ php artisan vendor:publish --provider="ProgLib\Telegram\Bot\Providers\TelegramSt
 Установка:
 ```bash
 php artisan migrate
-php artisan telegram:make
 php artisan config:cache
 php artisan route:cache
 php artisan telegram:webhook bot --setup
@@ -58,7 +57,7 @@ TELEGRAM_URL_API="https://api.telegram.org"
 
 <br>
 
-## Middlewares
+## Routing
 
 ...
 
@@ -80,17 +79,18 @@ TELEGRAM_CACHE_DRIVER="database"
 <br>
 
 Использование фасада:
+
 ```php
-use ProgLib\Telegram\Bot\Facades\TelegramCache;
+use ProgLib\Telegram\Bot\Facades\Cache;
 
 // Сохранение
-$result = TelegramCache::put('key', 'value', config('cache.ttl'));
+$result = Cache::put('key', 'value', config('cache.ttl'));
 
 // Получение
-$value  = TelegramCache::get('key', 'default');
+$value  = Cache::get('key', 'default');
 
 // Удаление
-$result = TelegramCache::forget('key');
+$result = Cache::forget('key');
 ```
 
 <br>
@@ -99,17 +99,17 @@ $result = TelegramCache::forget('key');
 ```php
 
 // Сохранение
-$result = telegram_cache()->put('key', 'value', config('cache.ttl'));
-$result = telegram_cache([
+$result = tb_cache()->put('key', 'value', config('cache.ttl'));
+$result = tb_cache([
     'key_1' => 'value',
     'key_2' => 'value'
 ]);
 
 // Получение
-$value  = telegram_cache('key', 'default');
+$value  = tb_cache('key', 'default');
 
 // Удаление
-$result = telegram_cache()->forget('key');
+$result = tb_cache()->forget('key');
 ```
 
 <br>

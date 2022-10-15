@@ -7,12 +7,13 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use ProgLib\Telegram\Bot\Facades\Log;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramValidation {
+class TelegramBotValidation {
 
     /**
      * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
@@ -25,8 +26,8 @@ class TelegramValidation {
      */
     public function handle(Request $request, Closure $next) {
 
-        // Верификация токена бота «Telegram»
-        if ($request->route('token') !== Telegram::getAccessToken())
+        // Верификация токена API
+        if ($request->route('token') !== Telegram::bot()->getAccessToken())
             return response()->json([ 'ok' => false, 'description' => 'Forbidden' ]);
 
         // Валидация входящих параметров запроса

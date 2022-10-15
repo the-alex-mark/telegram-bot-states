@@ -6,8 +6,8 @@ use Illuminate\Foundation\Exceptions\Handler as BaseHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use ProgLib\Telegram\Bot\Facades\Log;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Exceptions\TelegramUndefinedPropertyException;
 use Throwable;
@@ -21,14 +21,9 @@ class TelegramBotHandler extends BaseHandler {
      */
     protected $dontReport = [];
 
-    /**
-     * @var string Имя канала
-     */
-    protected $channel = 'telegram_errors';
-
     #endregion
 
-    #region Overrides
+    #region Helpers
 
     /**
      * @inheritDoc
@@ -55,39 +50,6 @@ class TelegramBotHandler extends BaseHandler {
     }
 
     /**
-     * @inheritDoc
-     */
-    public function register() {
-
-        // Обработка исключений в работе «Telegram SDK»
-        $this
-            ->renderable(function (Throwable $e, $request) {
-                if ($request->route()->getName() == 'telegram.bot.webhook')
-                    return $this->telegramJson($request, $e);
-
-                return null;
-            });
-
-        // Обработка исключений в работе «Telegram SDK»
-        $this
-            ->reportable(function (TelegramSDKException $e) {
-                Log::channel($this->channel)->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
-                Log::channel($this->channel)->error(str_repeat('-', 100));
-            })
-            ->stop();
-
-        // Обработка исключений в работе «Telegram SDK»
-        $this
-            ->reportable(function (TelegramUndefinedPropertyException $e) {
-                Log::channel($this->channel)->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
-                Log::channel($this->channel)->error(str_repeat('-', 100));
-            })
-            ->stop();
-    }
-
-    #endregion
-
-    /**
      * Преобразует исключение в работе бота «Telegram» в ответ Json.
      *
      * @param  Request   $request Параметры запроса.
@@ -108,5 +70,40 @@ class TelegramBotHandler extends BaseHandler {
             $response['exception'] = $this->convertExceptionToArray($e);
 
         return response()->json($response);
+    }
+
+    #endregion
+
+    /**
+     * @inheritDoc
+     */
+    public function register() {
+
+        // Обработка исключений в работе «Telegram SDK»
+        $this
+            ->renderable(function (Throwable $e, Request $request) {
+                if (!empty($request->route())) {
+                    if ($request->route()->getName() == 'telegram.bot.webhook')
+                        return $this->telegramJson($request, $e);
+                }
+
+                return null;
+            });
+
+        // Обработка исключений в работе «Telegram SDK»
+        $this
+            ->reportable(function (TelegramSDKException $e) {
+                Log::channel('errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
+                Log::channel('errors')->error(str_repeat('-', 100));
+            })
+            ->stop();
+
+        // Обработка исключений в работе «Telegram SDK»
+        $this
+            ->reportable(function (TelegramUndefinedPropertyException $e) {
+                Log::channel('errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
+                Log::channel('errors')->error(str_repeat('-', 100));
+            })
+            ->stop();
     }
 }

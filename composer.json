@@ -14,7 +14,8 @@
     "keywords": [ "laravel", "telegram", "bot", "states", "cache", "options" ],
     "autoload": {
         "files": [
-            "helpers/cache.php"
+            "helpers/cache.php",
+            "helpers/enviroment.php"
         ],
         "psr-4": {
             "ProgLib\\Telegram\\Bot\\": "src/"
@@ -33,11 +34,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "ProgLib\\Telegram\\Bot\\Providers\\TelegramStatesServiceProvider",
-                "ProgLib\\Telegram\\Bot\\Providers\\TelegramCacheServiceProvider"
+                "ProgLib\\Telegram\\Bot\\Providers\\TelegramStateServiceProvider"
             ],
             "aliases": {
-                "TelegramCache": "ProgLib\\Telegram\\Bot\\Facades\\TelegramCache"
+                "TelegramLog": "ProgLib\\Telegram\\Bot\\Facades\\Log",
+                "TelegramCache": "ProgLib\\Telegram\\Bot\\Facades\\Cache"
             }
         }
     }

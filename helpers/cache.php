@@ -3,17 +3,17 @@
 use Illuminate\Cache\Repository;
 use ProgLib\Telegram\Bot\Exceptions\TelegramCacheException;
 
-if (!function_exists('telegram_cache')) {
+if (!function_exists('tb_cache')) {
 
     /**
      * Возвращает или задаёт значение буфера.
      *
-     * @param array|string|null $key Ключ.
-     * @param mixed $default Значение по умолчанию.
+     * @param  array|string|null $key Ключ.
+     * @param  mixed $default Значение по умолчанию.
      * @return mixed|Repository
      * @throws TelegramCacheException
      */
-    function telegram_cache($key = null, $default = null) {
+    function tb_cache($key = null, $default = null) {
         try {
 
             // Возврат экземпляра «TelegramCache»

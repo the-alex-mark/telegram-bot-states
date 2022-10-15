@@ -88,10 +88,9 @@ class TelegramWebhookCommand extends BaseWebhookCommand {
      * @inheritDoc
      */
     protected function setupWebhook() {
-        $route = (Route::has('telegram.bot.webhook'))
-            ? route('bot.telegram.webhook', [ 'token' => data_get($this->config, 'token') ])
-            : '';
-        $url   = data_get($this->config, 'webhook_url', $route);
+        $url = data_get($this->config, 'webhook_url');
+        if (empty($url) && Route::has('telegram.bot.webhook'))
+            $url = route('telegram.bot.webhook', [ 'token' => data_get($this->config, 'token') ]);
 
         if (!URL::isValidUrl($url))
             throw new RuntimeException('Адрес веб-перехватчика задан некорректно.');
