@@ -3,13 +3,47 @@
 namespace ProgLib\Telegram\Bot\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class TelegramLogServiceProvider extends ServiceProvider {
+
+    #region Helpers
+
+    /**
+     * Возвращает расположение файлов конфигурации относительно модуля.
+     *
+     * @param  string $value
+     * @return string
+     */
+    private function config_path($value = '') {
+        if (!empty($value) && !Str::startsWith('\\', $value) && !Str::startsWith('/', $value))
+            $value = DIRECTORY_SEPARATOR . $value;
+
+        return implode(DIRECTORY_SEPARATOR, array( __DIR__, '..', '..', 'config' )) . $value;
+    }
+
+    #endregion
+
+    /**
+     * @inheritDoc
+     */
+    public function provides() {
+        return [
+            'telegram.bot.config.logging'
+        ];
+    }
 
     /**
      * @inheritDoc
      */
     public function boot() {
+        if ($this->app->runningInConsole()) {
+
+            // Публикация конфигурации журнала
+            $this->publishes([
+                $this->config_path('logging.php') => config_path('telegram.logging.php')
+            ], 'telegram.bot.config.logging');
+        }
 
         // Параметры канала по умолчанию
         $default_name   = $this->app['config']->get('logging.default', '');
@@ -32,6 +66,9 @@ class TelegramLogServiceProvider extends ServiceProvider {
      * @inheritDoc
      */
     public function register() {
+
+        // Слияние конфигурации
+        $this->mergeConfigFrom($this->config_path('logging.php'), 'telegram.logging');
 
         // Регистрация фасада для работы с каналом журнала по умолчанию
         $this->app->singleton('telegram.bot.log', function ($app) {
