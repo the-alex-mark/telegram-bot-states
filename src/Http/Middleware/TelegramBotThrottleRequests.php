@@ -79,7 +79,7 @@ class TelegramBotThrottleRequests extends BaseThrottleRequests {
         if (config('telegram.options.throttle.enabled', false) !== true)
             return $next($request);
 
-        $this->telegram = Telegram::bot();
+        $this->telegram = $request->{'telegram'}();
         $this->update   = Update::make($request->all());
 
         try { $key = $prefix . $this->resolveRequestSignature($request); }

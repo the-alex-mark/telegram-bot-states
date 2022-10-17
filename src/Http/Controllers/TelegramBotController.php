@@ -30,7 +30,7 @@ class TelegramBotController extends BaseController {
      */
     private function me() {
         return Cache::remember('bot_info', 720, function () {
-            return Telegram::bot()->getMe();
+            return request()->{'telegram'}()->getMe();
         });
     }
 
@@ -48,7 +48,7 @@ class TelegramBotController extends BaseController {
 
         // Обработка команд
         if ($this->me()->id !== $update->getMessage()->from->id)
-            Telegram::bot()->commandsHandler(true);
+            $request->{'telegram'}()->commandsHandler(true);
 
 //        // Выполнение состояний
 //        TelegramState::process($update);

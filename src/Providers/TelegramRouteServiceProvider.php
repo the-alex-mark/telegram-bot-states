@@ -4,11 +4,14 @@ namespace ProgLib\Telegram\Bot\Providers;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotAuthenticate;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotLogging;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotResolveRequests;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotThrottleRequests;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotValidation;
+use ProgLib\Telegram\Bot\Routing\TelegramBotRequestMethods;
 use ProgLib\Telegram\Bot\Routing\TelegramBotRouteMethods;
 use ReflectionException;
 
@@ -30,18 +33,27 @@ class TelegramRouteServiceProvider extends ServiceProvider {
         $router_instance
             ->aliasMiddleware($group . '.validate', TelegramBotValidation::class)
             ->aliasMiddleware($group . '.auth', TelegramBotAuthenticate::class)
+            ->aliasMiddleware($group . '.resolve', TelegramBotResolveRequests::class)
             ->aliasMiddleware($group . '.throttle', TelegramBotThrottleRequests::class)
             ->aliasMiddleware($group . '.logging', TelegramBotLogging::class);
 
         $router_instance
             ->pushMiddlewareToGroup($group, $group . '.validate')
             ->pushMiddlewareToGroup($group, $group . '.auth')
+            ->pushMiddlewareToGroup($group, $group . '.resolve')
             ->pushMiddlewareToGroup($group, $group . '.throttle')
             ->pushMiddlewareToGroup($group, $group . '.logging');
 
         // Регистрация маршрутов для работы веб-перехватчика
         $router_instance
             ->mixin(new TelegramBotRouteMethods());
+
+        /** @var Request $request_instance */
+        $request_instance = $this->app['request'];
+
+        // Регистрация методов авторизации API
+        $request_instance
+            ->mixin(new TelegramBotRequestMethods());
     }
 
     /**

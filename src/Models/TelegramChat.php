@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id Идентификатор чата
  * @property string $username Имя пользователя
  * @property string $type Тип чата
+ * @property array $extra Дополнительная информация
  * @property-read string $url Адрес диалога чата
  */
 class TelegramChat extends Model {

@@ -5,6 +5,7 @@ namespace ProgLib\Telegram\Bot\Http\Middleware;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use ProgLib\Telegram\Bot\Facades\Log;
@@ -27,8 +28,11 @@ class TelegramBotValidation {
     public function handle(Request $request, Closure $next) {
 
         // Верификация токена API
-        if ($request->route('token') !== Telegram::bot()->getAccessToken())
-            return response()->json([ 'ok' => false, 'description' => 'Forbidden' ]);
+        $token  = $request->route('token');
+        $config = Collection::make(Telegram::getConfig('bots'));
+
+        if ($config->where('token', $token)->isEmpty())
+            abort(403, 'Forbidden');
 
         // Валидация входящих параметров запроса
         $validator = Validator::make($request->all(), [

@@ -2,11 +2,12 @@
 
 namespace ProgLib\Telegram\Bot\Routing;
 
+use Closure;
 use Illuminate\Routing\Router;
 use ProgLib\Telegram\Bot\Http\Controllers\TelegramBotController;
 
 /**
- * Представляет маршруты веб-перехватчика.
+ * Представляет методы регистрации новых маршрутов.
  *
  * @mixin Router
  */
@@ -15,7 +16,7 @@ class TelegramBotRouteMethods {
     /**
      * Регистрирует маршруты веб-перехватчика.
      *
-     * @return callable
+     * @return Closure
      */
     public function telegram_bot_webhook() {
 

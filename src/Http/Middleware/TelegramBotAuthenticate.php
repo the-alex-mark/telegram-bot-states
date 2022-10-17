@@ -16,6 +16,8 @@ class TelegramBotAuthenticate {
     #region Helpers
 
     /**
+     * Выполняет авторизацию пользователя.
+     *
      * @param  Update $update Входящее обновление.
      * @return TelegramChat
      */
@@ -29,6 +31,13 @@ class TelegramBotAuthenticate {
             'username' => $chat->username,
             'type'     => $chat->type
         ]);
+
+        // Заполнение дополнительной информации
+        if (method_exists($this, 'resolveChatExtra')) {
+            $user
+                ->fill([ 'extra' => $this->{'resolveChatExtra'}($update) ])
+                ->save();
+        }
 
         return $user;
     }
