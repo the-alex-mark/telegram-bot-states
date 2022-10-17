@@ -44,6 +44,7 @@ class TelegramCacheServiceProvider extends ServiceProvider {
     public function provides() {
         return [
             'telegram.bot.config.cache',
+            'telegram.bot.configurations.cache',
             'telegram.bot.cache.command.clear'
         ];
     }
