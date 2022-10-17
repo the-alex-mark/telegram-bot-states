@@ -84,7 +84,7 @@ class TelegramStateServiceProvider extends ServiceProvider {
 
             // Публикация миграций
             $this->publishes([
-                $this->database_path('migrations') => database_path('migrations')
+                $this->database_path('migrations/states') => database_path('migrations')
             ], 'telegram.bot.migrations');
 
             // Публикация файлов локализации

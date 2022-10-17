@@ -42,7 +42,7 @@ class TelegramLogServiceProvider extends ServiceProvider {
             // Публикация конфигурации журнала
             $this->publishes([
                 $this->config_path('logging.php') => config_path('telegram.logging.php')
-            ], 'telegram.bot.config.logging');
+            ], 'telegram.bot.configurations.logging');
         }
 
         // Параметры канала по умолчанию

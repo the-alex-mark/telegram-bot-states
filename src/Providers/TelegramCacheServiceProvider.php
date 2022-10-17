@@ -23,6 +23,19 @@ class TelegramCacheServiceProvider extends ServiceProvider {
         return implode(DIRECTORY_SEPARATOR, array( __DIR__, '..', '..', 'config' )) . $value;
     }
 
+    /**
+     * Возвращает расположение файлов конфигурации относительно модуля.
+     *
+     * @param  string $value
+     * @return string
+     */
+    private function database_path($value = '') {
+        if (!empty($value) && !Str::startsWith('\\', $value) && !Str::startsWith('/', $value))
+            $value = DIRECTORY_SEPARATOR . $value;
+
+        return implode(DIRECTORY_SEPARATOR, array( __DIR__, '..', '..', 'database' )) . $value;
+    }
+
     #endregion
 
     /**
@@ -49,7 +62,12 @@ class TelegramCacheServiceProvider extends ServiceProvider {
             // Публикация конфигурации буфера
             $this->publishes([
                 $this->config_path('cache.php') => config_path('telegram.cache.php')
-            ], 'telegram.bot.config.cache');
+            ], 'telegram.bot.configurations.cache');
+
+            // Публикация миграций
+            $this->publishes([
+                $this->database_path('migrations/cache') => database_path('migrations')
+            ], 'telegram.bot.migrations.cache');
         }
 
         // Параметры буфера по умолчанию

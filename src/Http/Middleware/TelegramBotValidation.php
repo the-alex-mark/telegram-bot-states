@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use ProgLib\Telegram\Bot\Facades\Log;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
 /**
