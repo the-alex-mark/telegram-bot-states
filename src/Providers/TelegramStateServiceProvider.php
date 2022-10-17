@@ -7,9 +7,9 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use ProgLib\Telegram\Bot\Api\GuzzleHttpClient as CustomGuzzleHttpClient;
+use ProgLib\Telegram\Bot\BotsManager as CustomBotsManager;
 use ProgLib\Telegram\Bot\Console\TelegramWebhookCommand;
 use ProgLib\Telegram\Bot\Exceptions\Handlers\TelegramBotHandler;
-use ProgLib\Telegram\Bot\Sdk\BotsManager as CustomBotsManager;
 use Telegram\Bot\BotsManager as BaseBotsManager;
 
 class TelegramStateServiceProvider extends ServiceProvider {

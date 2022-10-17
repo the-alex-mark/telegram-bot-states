@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgLib\Telegram\Bot\Sdk;
+namespace ProgLib\Telegram\Bot;
 
 use Telegram\Bot\BotsManager as BaseBotsManager;
 

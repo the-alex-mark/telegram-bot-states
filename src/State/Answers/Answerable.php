@@ -1,6 +1,6 @@
 <?php
 
-namespace  ProgLib\Telegram\Bot\Sdk\Answers;
+namespace  ProgLib\Telegram\Bot\State\Answers;
 
 use BadMethodCallException;
 use Exception;
