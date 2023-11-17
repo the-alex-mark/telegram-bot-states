@@ -1,40 +1,35 @@
 <?php
 
-namespace ProgLib\Telegram\Bot\Http\Middleware;
+namespace ProgLib\Telegram\Bot\Http\Middleware\OAuth;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramBotResolveRequests {
+class TelegramOAuthResolveRequest {
 
     /**
      * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
-     * Выполняет авторизацию пользователя мессенджера.
+     * Выполняет валидацию входящих параметров запроса.
      *
      * @param  Request $request Входящие параметры запроса.
      * @param  Closure $next    Метод контроллера.
-     * @return JsonResponse
-     * @throws ValidationException
+     * @return mixed
      */
     public function handle(Request $request, Closure $next) {
 
-        // Верификация токена бота
+        // Верификация имени пользователя бота
         $token  = $request->route()->parameter('bot_name');
-        $config = collect(Telegram::getConfig('bots'))->where('token', $token);
+        $config = collect(Telegram::getConfig('bots'))->where('username', $token);
 
         if ($config->isEmpty())
             abort(403, 'Forbidden');
 
-        // Получение текущего бота
-        $bot = $config->keys()->first();
-
         // Авторизация API
+        $bot = $config->keys()->first();
         $request->{'setTelegramResolver'}(function () use ($bot) {
             return Telegram::bot($bot);
         });

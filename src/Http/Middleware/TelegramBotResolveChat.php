@@ -2,47 +2,16 @@
 
 namespace ProgLib\Telegram\Bot\Http\Middleware;
 
-use ProgLib\Telegram\Bot\Models\TelegramChat;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use ProgLib\Telegram\Bot\Models\TelegramChat;
 use Telegram\Bot\Objects\Update;
 
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramBotAuthenticate {
-
-    #region Helpers
-
-    /**
-     * Выполняет авторизацию пользователя.
-     *
-     * @param  Update $update Входящее обновление.
-     * @return TelegramChat
-     */
-    protected function resolveRequestUser(Update $update) {
-        $chat = $update->getMessage()->chat;
-
-        /** @var TelegramChat $user */
-        $user = TelegramChat::query()->firstOrCreate([
-            'id'       => $chat->id
-        ], [
-            'username' => $chat->username,
-            'type'     => $chat->type
-        ]);
-
-        // Заполнение дополнительной информации
-        if (method_exists($this, 'resolveChatExtra')) {
-            $user
-                ->fill([ 'extra' => $this->{'resolveChatExtra'}($update) ])
-                ->save();
-        }
-
-        return $user;
-    }
-
-    #endregion
+class TelegramBotResolveChat {
 
     /**
      * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
@@ -62,7 +31,10 @@ class TelegramBotAuthenticate {
 
         // Указание чата (пользователя) как авторизованного
         $request->setUserResolver(function ($guard = null) use ($update) {
-            return $this->resolveRequestUser($update);
+            $chat = $update->getChat();
+
+            // Регистрация нового чата (при его отсутствии)
+            return TelegramChat::register($chat);
         });
 
         return $next($request);

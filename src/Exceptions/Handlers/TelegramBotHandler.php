@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
+use ProgLib\Telegram\Bot\Exceptions\TelegramBreakException;
 use ProgLib\Telegram\Bot\Facades\Log;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Telegram\Bot\Exceptions\TelegramUndefinedPropertyException;
@@ -19,7 +20,9 @@ class TelegramBotHandler extends BaseHandler {
     /**
      * @inheritDoc
      */
-    protected $dontReport = [];
+    protected $dontReport = [
+        TelegramBreakException::class
+    ];
 
     #endregion
 
@@ -43,7 +46,10 @@ class TelegramBotHandler extends BaseHandler {
 
         // Трассировка
         $data['trace'] = collect($e->getTrace())
-            ->map(function ($trace) { return Arr::except($trace, [ 'args' ]); })
+            ->map(function ($trace) { return Arr::except($trace, [ 'args', 'type' ]); })
+//            ->map(function ($trace) {
+//                return $trace['file'] . '(' . $trace['line'] . '): ' . $trace['class'] . $trace['type'] . '(' . implode(', ', $trace['args']) . ')';
+//            })
             ->all();
 
         return $data;
@@ -56,7 +62,7 @@ class TelegramBotHandler extends BaseHandler {
      * @param  Throwable $e       Исключение.
      * @return JsonResponse
      */
-    protected function telegramJson(Request $request, Throwable $e) {
+    protected function telegramInvalidJson(Request $request, Throwable $e) {
         $response = [
             'ok' => false,
             'description' => $this->isHttpException($e) ? $e->getMessage() : 'Server Error'
@@ -84,13 +90,23 @@ class TelegramBotHandler extends BaseHandler {
             ->renderable(function (Throwable $e, Request $request) {
                 if (!empty($request->route())) {
                     if ($request->route()->getName() == 'telegram.bot.webhook')
-                        return $this->telegramJson($request, $e);
+                        return $this->telegramInvalidJson($request, $e);
+
+                    if ($request->route()->getName() == 'telegram.bot.oauth') {
+                        if ($request->expectsJson())
+                            return $this->telegramInvalidJson($request, $e);
+                    }
                 }
 
                 return null;
             });
 
-        // Обработка исключений в работе «Telegram SDK»
+        $this
+            ->renderable(function (Throwable $e, Request $request) {
+                return view('errors.500');
+            });
+
+        // Отчёт об исключениях в работе «Telegram SDK»
         $this
             ->reportable(function (TelegramSDKException $e) {
                 Log::channel('errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
@@ -98,7 +114,7 @@ class TelegramBotHandler extends BaseHandler {
             })
             ->stop();
 
-        // Обработка исключений в работе «Telegram SDK»
+        // Отчёт об исключениях в работе «Telegram SDK»
         $this
             ->reportable(function (TelegramUndefinedPropertyException $e) {
                 Log::channel('errors')->error('Ошибка в работе сервиса:', $this->convertExceptionToArray($e));
@@ -106,4 +122,11 @@ class TelegramBotHandler extends BaseHandler {
             })
             ->stop();
     }
+
+//    /**
+//     * @inheritDoc
+//     */
+//    protected function invalidJson($request, ValidationException $exception) {
+//        return $this->telegramInvalidJson($request, $exception);
+//    }
 }

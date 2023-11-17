@@ -2,12 +2,12 @@
 
 namespace ProgLib\Telegram\Bot\Providers;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
-use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotAuthenticate;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotResolveChat;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotLogging;
+use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotOAuth;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotResolveRequests;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotThrottleRequests;
 use ProgLib\Telegram\Bot\Http\Middleware\TelegramBotValidation;
@@ -17,32 +17,46 @@ use ReflectionException;
 
 class TelegramRouteServiceProvider extends ServiceProvider {
 
+    #region Helpers
+
+    /**
+     * ...
+     *
+     * @param  Router $router
+     * @return void
+     */
+    protected function registerGroupMiddleware($router, $group, $middlewares) {
+        foreach ($middlewares as $name => $class) {
+            $router->aliasMiddleware("$group.$name", $class);
+            $router->pushMiddlewareToGroup($group, "$group.$name");
+        }
+    }
+
+    #endregion
+
     /**
      * @inheritDoc
      *
-     * @throws BindingResolutionException
      * @throws ReflectionException
      */
     public function boot() {
 
         /** @var Router $router_instance */
         $router_instance = $this->app['router'];
-        $group           = 'telegram.bot';
 
-        // Регистрация промежуточного ПО
-        $router_instance
-            ->aliasMiddleware($group . '.validate', TelegramBotValidation::class)
-            ->aliasMiddleware($group . '.auth', TelegramBotAuthenticate::class)
-            ->aliasMiddleware($group . '.resolve', TelegramBotResolveRequests::class)
-            ->aliasMiddleware($group . '.throttle', TelegramBotThrottleRequests::class)
-            ->aliasMiddleware($group . '.logging', TelegramBotLogging::class);
+        // Регистрация промежуточного ПО для «OAuth»
+        $this->registerGroupMiddleware($router_instance, 'telegram.oauth', [
+            'resolve_chat' => TelegramBotResolveChat::class,
+            'resolve_api'  => TelegramBotResolveRequests::class
+        ]);
 
-        $router_instance
-            ->pushMiddlewareToGroup($group, $group . '.validate')
-            ->pushMiddlewareToGroup($group, $group . '.auth')
-            ->pushMiddlewareToGroup($group, $group . '.resolve')
-            ->pushMiddlewareToGroup($group, $group . '.throttle')
-            ->pushMiddlewareToGroup($group, $group . '.logging');
+        // Регистрация промежуточного ПО для веб-перехватчика
+        $this->registerGroupMiddleware($router_instance, 'telegram.bot', [
+            'resolve_chat' => TelegramBotResolveChat::class,
+            'resolve_api'  => TelegramBotResolveRequests::class,
+            'throttle'     => TelegramBotThrottleRequests::class,
+            'logging'      => TelegramBotLogging::class
+        ]);
 
         // Регистрация маршрутов для работы веб-перехватчика
         $router_instance
@@ -63,6 +77,11 @@ class TelegramRouteServiceProvider extends ServiceProvider {
 
         /** @var Router $router_instance */
         $router_instance = $this->app['router'];
+
+        if (!$router_instance->has('telegram.bot.oauth')) {
+            if ($router_instance->hasMacro('telegram_bot_oauth'))
+                $router_instance->{'telegram_bot_oauth'}();
+        }
 
         if (!$router_instance->has('telegram.bot.webhook')) {
             if ($router_instance->hasMacro('telegram_bot_webhook'))

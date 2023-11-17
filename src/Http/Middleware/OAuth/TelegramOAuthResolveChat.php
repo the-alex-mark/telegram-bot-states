@@ -1,6 +1,6 @@
 <?php
 
-namespace ProgLib\Telegram\Bot\Http\Middleware;
+namespace ProgLib\Telegram\Bot\Http\Middleware\OAuth;
 
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -8,12 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use ProgLib\Telegram\Bot\Models\TelegramChat;
 use Telegram\Bot\Laravel\Facades\Telegram;
+use Telegram\Bot\Objects\Chat;
 
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
  */
-class TelegramBotValidation {
+class TelegramOAuthResolveChat {
 
     /**
      * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
@@ -22,24 +24,18 @@ class TelegramBotValidation {
      * @param  Request $request Входящие параметры запроса.
      * @param  Closure $next    Метод контроллера.
      * @return JsonResponse
-     * @throws ValidationException
      */
     public function handle(Request $request, Closure $next) {
 
-        // Верификация токена API
-        $token  = $request->route()->parameter('token');
-        $config = Collection::make(Telegram::getConfig('bots'));
+        // Указание чата (пользователя) как авторизованного
+        $request->setUserResolver(function ($guard = null) use ($request) {
+            $chat = tb_api()->getChat([
+                'chat_id' => $request->get('id')
+            ]);
 
-        if ($config->where('token', $token)->isEmpty())
-            abort(403, 'Forbidden');
-
-        // Валидация входящих параметров запроса
-        $validator = Validator::make($request->all(), [
-            'update_id' => [ 'bail', 'required', 'numeric', 'min:0' ]
-        ]);
-
-        if ($validator->fails())
-            throw new ValidationException($validator);
+            // Регистрация нового чата (при его отсутствии)
+            return TelegramChat::register($chat);
+        });
 
         return $next($request);
     }

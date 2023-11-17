@@ -116,7 +116,7 @@ trait Answerable {
 
         $params = array_merge(
             [ 'chat_id' => $chat_id ],
-            config('telegram.message', []),
+            config('telegram.pre.message', []),
             $params
         );
 

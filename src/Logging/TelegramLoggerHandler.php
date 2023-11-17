@@ -34,8 +34,14 @@ class TelegramLoggerHandler extends AbstractProcessingHandler {
     public function __construct($chat_id, $bot_name = null, $level = Logger::DEBUG) {
         parent::__construct($level);
 
+        $config = Telegram::getConfig('bots');
+        $bot    = collect($config)
+            ->where('username', $bot_name)
+            ->keys()
+            ->first();
+
         // Указание необходимых параметров
-        $this->telegram = Telegram::bot($bot_name);
+        $this->telegram = Telegram::bot($bot);
         $this->chat_id  = $chat_id;
     }
 

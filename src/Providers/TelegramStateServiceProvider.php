@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use ProgLib\Telegram\Bot\Api\GuzzleHttpClient as CustomGuzzleHttpClient;
 use ProgLib\Telegram\Bot\BotsManager as CustomBotsManager;
+use ProgLib\Telegram\Bot\BotsStateManager;
 use ProgLib\Telegram\Bot\Console\TelegramWebhookCommand;
 use ProgLib\Telegram\Bot\Exceptions\Handlers\TelegramBotHandler;
 use Telegram\Bot\BotsManager as BaseBotsManager;
@@ -70,8 +71,6 @@ class TelegramStateServiceProvider extends ServiceProvider {
     }
 
     /**
-     * @inheritDoc
-     *
      * @throws BindingResolutionException
      */
     public function boot() {
@@ -82,6 +81,11 @@ class TelegramStateServiceProvider extends ServiceProvider {
                 'telegram.bot.states.command.webhook'
             ]);
 
+            // Публикация конфигурации виджетов
+            $this->publishes([
+                $this->config_path('widgets.php') => config_path('telegram.widgets.php')
+            ], 'telegram.bot.configurations.widgets');
+
             // Публикация миграций
             $this->publishes([
                 $this->database_path('migrations/states') => database_path('migrations')
@@ -89,12 +93,20 @@ class TelegramStateServiceProvider extends ServiceProvider {
 
             // Публикация файлов локализации
             $this->publishes([
-                $this->resource_path('lang') => lang_path()
+                $this->resource_path('locales') => lang_path('vendor/telegram')
             ], 'telegram.bot.translations');
+
+            // Публикация шаблонов
+            $this->publishes([
+                $this->resource_path('views') => $this->app->resourcePath('views/vendor/telegram')
+            ], 'telegram.bot.views');
         }
 
         // Регистрация файлов локализации
-        $this->loadTranslationsFrom($this->resource_path('lang'), 'telegram');
+        $this->loadTranslationsFrom($this->resource_path('locales'), 'telegram');
+
+        // Регистрация шаблонов
+        $this->loadViewsFrom($this->resource_path('views'), 'telegram');
 
         // Переопределение клиента HTTP
         if (empty($this->app['config']->get('telegram.http_client_handler')))
@@ -108,11 +120,17 @@ class TelegramStateServiceProvider extends ServiceProvider {
 
         // Слияние конфигурации
         $this->mergeConfigFrom($this->config_path('telegram.php'), 'telegram');
+        $this->mergeConfigFrom($this->config_path('widgets.php'), 'telegram.widgets');
 
         // Переопределение сервиса управления ботами
         $this->app->extend(BaseBotsManager::class, static function (BaseBotsManager $manager, $app) {
             return (new CustomBotsManager($app['config']['telegram']))->setContainer($app);
         });
+
+//        // Регистрация пользовательского обработчика исключений
+//        $this->app->singleton('telegram.bot.states', function ($app) {
+//            return new BotsStateManager($app['config']['telegram']);
+//        });
 
         // Регистрация пользовательского обработчика исключений
         $this->app->singleton(ExceptionHandler::class, TelegramBotHandler::class);

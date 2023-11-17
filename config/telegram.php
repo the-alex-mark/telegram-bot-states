@@ -29,10 +29,14 @@ return [
         'allowed_updates' => json_encode([ 'message', 'inline_query', 'callback_query' ])
     ],
 
-    # Предопределённые параметры сообщения
-    'message' => [
-        'parse_mode' => env('TELEGRAM_BOT_PARSE_MODE', 'MarkdownV2'),
-        'disable_web_page_preview' => env('TELEGRAM_BOT_DISABLE_PREVIEW', true)
+    # Предопределённые параметры запроса
+    'pre' => [
+
+        # Метод: sendMessage
+        'message' => [
+            'parse_mode' => env('TELEGRAM_BOT_PARSE_MODE', 'MarkdownV2'),
+            'disable_web_page_preview' => env('TELEGRAM_BOT_DISABLE_PREVIEW', true)
+        ],
     ],
 
     /*
@@ -58,7 +62,7 @@ return [
     ],
 
     # Ссылки на ресурсы мессенджера
-    'endpoints' => [
+    'endpoint' => [
         'site' => env('TELEGRAM_URL_SITE', 'https://telegram.org'),
         'messenger' => env('TELEGRAM_URL_MESSENGER', 'https://t.me'),
         'api' => env('TELEGRAM_URL_API', 'https://api.telegram.org'),

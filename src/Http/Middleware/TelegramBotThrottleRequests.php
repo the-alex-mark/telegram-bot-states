@@ -92,7 +92,7 @@ class TelegramBotThrottleRequests extends BaseThrottleRequests {
         $responseCallback = function ($request, $headers) use ($key, $decayMinutes) {
             Cache::remember($key, 10, function () use ($key, $decayMinutes) {
                 $retryAfter = $this->getTimeUntilNextRetry($key);
-                $message = trans('telegram.messages.too_many_attempts', [
+                $message = trans('telegram::validation.throttled', [
                     'decay' => $this->formattedRetryAfter($decayMinutes * 60),
                     'retry' => $this->formattedRetryAfter($retryAfter)
                 ]);

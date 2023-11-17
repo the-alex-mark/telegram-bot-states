@@ -9,15 +9,44 @@ use Telegram\Bot\HttpClients\HttpClientInterface;
 
 class GuzzleHttpClient extends BaseGuzzleHttpClient implements HttpClientInterface {
 
+    #region Helpers
+
+    /**
+     * Возвращает тело запроса на основе указанных параметров.
+     *
+     * @param  array $options Параметры запроса.
+     * @return array
+     */
+    private function getRequestBody($options = []) {
+        $params = [
+            'multipart',
+            'form_params',
+            'body'
+        ];
+
+        foreach ($params as $param) {
+            if (!empty($options[$param]))
+                return $options[$param];
+        }
+
+        return [];
+    }
+
+    #endregion
+
     /**
      * @inheritDoc
      */
     public function send($url, $method, array $headers = [], array $options = [], $isAsyncRequest = false) {
         $options['on_stats'] = function (TransferStats $stats) use ($options) {
-            $request = $options['multipart'] ?? $options['form_params'] ?? $options['body'] ?? [];
+            $request = $this->getRequestBody($options);
+
+            // Скрытие токена в целях безопасности
+            $uri = $stats->getEffectiveUri();
+            $uri = preg_replace('@/bot.+/@', '/***/', $uri);
 
             // Отчёт о параметрах запроса
-            Log::channel('api')->debug('Запрос на адрес "' . $stats->getEffectiveUri() . '":', $request);
+            Log::channel('api')->debug('Исходящий запрос на адрес "' . $uri . '"' . (!empty($request) ? ':' : ''), $request);
 
             // Отчёт о параметрах ответа
             if ($stats->hasResponse())

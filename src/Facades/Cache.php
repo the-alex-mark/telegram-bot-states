@@ -28,7 +28,7 @@ class Cache extends BaseCache {
                 return static::$app['cache']->store($name);
             }
 
-            return static::$app['telegram.bot.cache'];
+            return static::$app[self::getFacadeAccessor()];
         }
 
         return null;

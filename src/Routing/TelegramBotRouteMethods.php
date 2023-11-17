@@ -14,6 +14,26 @@ use ProgLib\Telegram\Bot\Http\Controllers\TelegramBotController;
 class TelegramBotRouteMethods {
 
     /**
+     * Регистрирует маршруты авторизации пользователя.
+     *
+     * @return Closure
+     */
+    public function telegram_bot_oauth() {
+
+        /**
+         * Регистрирует маршруты авторизации пользователя.
+         *
+         * @return void
+         */
+        return function () {
+            $this
+                ->middleware([ 'telegram.bot.resolve' ])
+                ->get('telegram/bot/oauth/{bot_name}', [ TelegramBotController::class, 'oauth' ])
+                ->name('telegram.bot.oauth');
+        };
+    }
+
+    /**
      * Регистрирует маршруты веб-перехватчика.
      *
      * @return Closure

@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use ProgLib\Telegram\Bot\Facades\Log;
-use Telegram\Bot\Objects\Update;
 
 /**
  * Обрабатывает запросы веб-перехватчика мессенджера «<b>Telegram</b>».
@@ -23,10 +22,7 @@ class TelegramBotLogging {
      */
     public function handle(Request $request, Closure $next) {
         if (config('telegram.options.debug', false)) {
-            $update = Update::make($request->all());
-
-            // Отчёт о параметрах входящего обновления
-            Log::channel('updates')->debug($update->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+            Log::channel('updates')->debug('Входящий запрос от "' . tb_remote_ip() . '":', $request->all());
             Log::channel('updates')->debug(str_repeat('-', 100));
         }
 

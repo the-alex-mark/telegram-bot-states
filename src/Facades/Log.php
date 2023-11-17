@@ -28,7 +28,7 @@ class Log extends BaseLog {
                 return static::$app['log']->channel($channel);
             }
 
-            return static::$app['telegram.bot.log'];
+            return static::$app[self::getFacadeAccessor()];
         }
 
         return null;

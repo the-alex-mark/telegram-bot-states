@@ -3,10 +3,19 @@
 namespace ProgLib\Telegram\Bot\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use ProgLib\Telegram\Bot\Facades\Cache;
+use ProgLib\Telegram\Bot\Facades\State;
+use ProgLib\Telegram\Bot\Http\Requests\TelegramOAuthRequest;
+use ProgLib\Telegram\Bot\Http\Requests\TelegramUpdateRequest;
+use ProgLib\Telegram\Bot\Models\TelegramChat;
+use Telegram\Bot\Api;
 use Telegram\Bot\Laravel\Facades\Telegram;
+use Telegram\Bot\Objects\Document;
+use Telegram\Bot\Objects\PhotoSize;
 use Telegram\Bot\Objects\Update;
 use Telegram\Bot\Objects\User;
 
@@ -28,32 +37,100 @@ class TelegramBotController extends BaseController {
      *
      * @return User
      */
-    private function me() {
-        return Cache::remember('bot_info', 720, function () {
-            return request()->{'telegram'}()->getMe();
+    protected function me() {
+
+        /** @var Api $telegram */
+        $telegram = request()->{'telegram'}();
+        $token    = $telegram->getAccessToken();
+
+        return Cache::remember("bot_info_$token", 720, function () use ($telegram) {
+            return $telegram->getMe();
         });
     }
 
     #endregion
 
     /**
+     * Обрабатывает маршрут авторизации пользователя через «Telegram».
+     *
+     * @param  TelegramOAuthRequest $request Параметра запроса.
+     * @return JsonResponse|RedirectResponse
+     */
+    public function oauth(TelegramOAuthRequest $request) {
+        $response = [ 'ok' => true, 'description' => '' ];
+
+        // Выполнение пользовательских событий
+        Event::dispatch('telegram_bot:oauth', [ $request ]);
+
+        // Технический ответ
+        if ($request->expectsJson())
+            return response()->json($response);
+
+        return redirect()
+            ->back()
+            ->with('response', $response);
+    }
+
+    /**
      * Обрабатывает маршрут веб-перехватчика для приёма запросов бота.
      *
-     * @param  Request $request Параметра запроса.
-     * @param  string  $token   Токен доступа API.
+     * @param  TelegramUpdateRequest $request Параметра запроса.
      * @return JsonResponse
      */
-    public function webhook(Request $request, $token = null) {
+    public function webhook(TelegramUpdateRequest $request) {
+
+        // Выполнение пользовательских событий
+        Event::dispatch('telegram_bot:update', [ $request ]);
+
         $update = Update::make($request->all());
+//        $message = $update->getMessage();
+//        $message->photo
+//        $message->document
 
-        // Обработка команд
-        if ($this->me()->id !== $update->getMessage()->from->id)
-            $request->{'telegram'}()->commandsHandler(true);
+        if (!$update->has('callback_query')) {
+            $message = $update->getMessage();
 
-//        // Выполнение состояний
-//        TelegramState::process($update);
+            if ($message->has('photo')) {
+
+                /** @var PhotoSize[] $photo */
+                $photo = array_reverse($message->photo);
+                Telegram::bot()->getFile([
+                    'file_id' => $photo[0]->fileId
+                ]);
+            }
+
+            if ($message->has('document')) {
+
+                /** @var Document $document */
+                $document = array_reverse($message->document);
+                Telegram::bot()->getFile([
+                    'file_id' => $document->fileId
+                ]);
+            }
+        }
 
         // Технический ответ
         return response()->json([ 'ok' => true, 'description' => '' ]);
     }
+
+//    /**
+//     * Обрабатывает маршрут веб-перехватчика для приёма запросов бота.
+//     *
+//     * @param  TelegramUpdateRequest $request Параметра запроса.
+//     * @param  string                $token   Токен доступа бота.
+//     * @return JsonResponse
+//     */
+//    public function webhook(TelegramUpdateRequest $request, $token = null) {
+//        $update = Update::make($request->all());
+//
+//        // Обработка команд
+//        if ($this->me()->id !== $update->getMessage()->from->id)
+//            $request->{'telegram'}()->commandsHandler(true);
+//
+////        // Обработка сценариев состояний
+////        State::process($update);
+//
+//        // Технический ответ
+//        return response()->json([ 'ok' => true, 'description' => '' ]);
+//    }
 }
