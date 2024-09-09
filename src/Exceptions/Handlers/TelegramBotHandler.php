@@ -5,7 +5,6 @@ namespace ProgLib\Telegram\Bot\Exceptions\Handlers;
 use Illuminate\Foundation\Exceptions\Handler as BaseHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use ProgLib\Telegram\Bot\Exceptions\TelegramBreakException;
 use ProgLib\Telegram\Bot\Facades\Log;
@@ -45,12 +44,7 @@ class TelegramBotHandler extends BaseHandler {
             $data['errors'] = $e->errors();
 
         // Трассировка
-        $data['trace'] = collect($e->getTrace())
-            ->map(function ($trace) { return Arr::except($trace, [ 'args', 'type' ]); })
-//            ->map(function ($trace) {
-//                return $trace['file'] . '(' . $trace['line'] . '): ' . $trace['class'] . $trace['type'] . '(' . implode(', ', $trace['args']) . ')';
-//            })
-            ->all();
+        $data['trace'] = explode(PHP_EOL, $e->getTraceAsString());
 
         return $data;
     }
@@ -99,11 +93,6 @@ class TelegramBotHandler extends BaseHandler {
                 }
 
                 return null;
-            });
-
-        $this
-            ->renderable(function (Throwable $e, Request $request) {
-                return view('errors.500');
             });
 
         // Отчёт об исключениях в работе «Telegram SDK»

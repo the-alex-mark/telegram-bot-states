@@ -9,7 +9,9 @@ return [
     | Telegram HTTP Client Handler
     |--------------------------------------------------------------------------
     |
-    | Клиент HTTP.
+    | Клиент HTTP:
+    |  · CliHttpClient    - Выполняет запрос через CURL средствами CLI
+    |  · GuzzleHttpClient - Выполняет запрос через CURL средствами PHP
     |
     */
 

@@ -4,18 +4,12 @@ namespace ProgLib\Telegram\Bot\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use ProgLib\Telegram\Bot\Facades\Cache;
-use ProgLib\Telegram\Bot\Facades\State;
 use ProgLib\Telegram\Bot\Http\Requests\TelegramOAuthRequest;
-use ProgLib\Telegram\Bot\Http\Requests\TelegramUpdateRequest;
-use ProgLib\Telegram\Bot\Models\TelegramChat;
 use Telegram\Bot\Api;
-use Telegram\Bot\Laravel\Facades\Telegram;
-use Telegram\Bot\Objects\Document;
-use Telegram\Bot\Objects\PhotoSize;
 use Telegram\Bot\Objects\Update;
 use Telegram\Bot\Objects\User;
 
@@ -74,63 +68,24 @@ class TelegramBotController extends BaseController {
     /**
      * Обрабатывает маршрут веб-перехватчика для приёма запросов бота.
      *
-     * @param  TelegramUpdateRequest $request Параметра запроса.
+     * @param  Request $request Параметра запроса.
+     * @param  string $token Токен доступа бота.
      * @return JsonResponse
      */
-    public function webhook(TelegramUpdateRequest $request) {
+    public function webhook(Request $request, $token = null) {
+        $update = Update::make($request->all());
 
         // Выполнение пользовательских событий
-        Event::dispatch('telegram_bot:update', [ $request ]);
+        Event::dispatch('telegram_bot:update', [ $update ]);
 
-        $update = Update::make($request->all());
-//        $message = $update->getMessage();
-//        $message->photo
-//        $message->document
+        // Обработка команд
+        if ($this->me()->id !== $update->getMessage()->from->id)
+            $request->{'telegram'}()->commandsHandler(true);
 
-        if (!$update->has('callback_query')) {
-            $message = $update->getMessage();
-
-            if ($message->has('photo')) {
-
-                /** @var PhotoSize[] $photo */
-                $photo = array_reverse($message->photo);
-                Telegram::bot()->getFile([
-                    'file_id' => $photo[0]->fileId
-                ]);
-            }
-
-            if ($message->has('document')) {
-
-                /** @var Document $document */
-                $document = array_reverse($message->document);
-                Telegram::bot()->getFile([
-                    'file_id' => $document->fileId
-                ]);
-            }
-        }
+//        // Обработка сценариев состояний
+//        State::process($update);
 
         // Технический ответ
         return response()->json([ 'ok' => true, 'description' => '' ]);
     }
-
-//    /**
-//     * Обрабатывает маршрут веб-перехватчика для приёма запросов бота.
-//     *
-//     * @param  TelegramUpdateRequest $request Параметра запроса.
-//     * @param  string                $token   Токен доступа бота.
-//     * @return JsonResponse
-//     */
-//    public function webhook(TelegramUpdateRequest $request, $token = null) {
-//        $update = Update::make($request->all());
-//
-//        // Обработка команд
-//        if ($this->me()->id !== $update->getMessage()->from->id)
-//            $request->{'telegram'}()->commandsHandler(true);
-//
-////        // Обработка сценариев состояний
-////        State::process($update);
-//
-//        // Технический ответ
-//        return response()->json([ 'ok' => true, 'description' => '' ]);
-//    }
 }
